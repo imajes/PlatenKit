@@ -1,0 +1,34 @@
+name: PrinterBench
+options:
+  bundleIdPrefix: app.smokeclouds.whiplash
+  deploymentTarget:
+    iOS: "16.0"
+packages:
+  WhiplashPrinting:
+    path: ..
+targets:
+  PrinterBench:
+    type: application
+    platform: iOS
+    sources: [App]
+    dependencies:
+      - package: WhiplashPrinting
+        product: WhiplashPrinting
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.smokeclouds.whiplash.printerbench
+        DEVELOPMENT_TEAM: 55GFE7X4J4
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Whiplash Bench
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: Find your selected label printer and send a label when you request one.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1
+        SWIFT_VERSION: "5.0"
+schemes:
+  PrinterBench:
+    build:
+      targets:
+        PrinterBench: all
