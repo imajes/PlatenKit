@@ -3,6 +3,14 @@ import XCTest
 @testable import WhiplashPrinting
 
 final class PrinterTests: XCTestCase {
+    func testLabelifeFragmentedPrinterMessagesAndErrors() {
+        var messages = LabelifeMessages()
+        XCTAssertEqual(messages.append(Data("SSSGETPRI".utf8)), [])
+        XCTAssertEqual(messages.append(Data("NTING:DOING\r\nCmd error:".utf8)), ["SSSGETPRINTING:DOING"])
+        XCTAssertEqual(messages.append(Data([0x1f, 0x11]) + Data("/SIZE\r".utf8)), [])
+        XCTAssertEqual(messages.append(Data("\n\r\nSSSGETPRINTING:DONE\r\n".utf8)), ["Cmd error:\\x1F\\x11/SIZE", "SSSGETPRINTING:DONE"])
+    }
+
     func testOddWidthAndWireBytes() throws {
         let stock = try LabelStock(widthMM: 9 * 25.4 / 203, heightMM: 8 * 25.4 / 203)
         var pixels = [UInt8](repeating: 255, count: 72)
@@ -29,6 +37,59 @@ final class PrinterTests: XCTestCase {
         XCTAssertEqual(stream[first..<(first + 4)], Data([24, 0, 0, 0]))
         let second = first + 4 + 24
         XCTAssertEqual(stream[second...], Data([5, 0, 0, 0, 18, 255, 17, 0, 0, 0, 0, 0, 0]))
+    }
+
+    func testLabelifeCreditsAndPacketLength() throws {
+        let link = LabelifeLink()
+        XCTAssertEqual(link.credits, 0)
+        XCTAssertEqual(link.packetLimit, 20)
+        var pump = try WritePump(Data(repeating: 1, count: 500), limit: 512, mode: .acknowledged, link: link)
+        XCTAssertNil(pump.next(canQueue: true))
+        XCTAssertTrue(link.receive(Data([1, 7])))
+        XCTAssertTrue(link.receive(Data([2, 0xf4, 0])))
+        XCTAssertEqual(link.packetLimit, 244)
+        XCTAssertEqual(pump.next(canQueue: true)?.count, 244)
+        XCTAssertNil(pump.next(canQueue: true))
+        XCTAssertEqual(link.credits, 6)
+        XCTAssertTrue(link.receive(Data([1, 1])))
+        XCTAssertEqual(link.credits, 7)
+        XCTAssertFalse(link.receive(Data([0x1a, 0x1d, 0])))
+        XCTAssertFalse(link.receive(Data([2, 0, 0])))
+        XCTAssertEqual(link.packetLimit, 244)
+        pump.didAcknowledge()
+        XCTAssertEqual(pump.next(canQueue: false)?.count, 244)
+        pump.didAcknowledge()
+        XCTAssertEqual(pump.next(canQueue: false)?.count, 12)
+        XCTAssertFalse(pump.complete)
+        pump.didAcknowledge()
+        XCTAssertTrue(pump.complete)
+    }
+
+    func testLabelifeQueuedWritesNeedBothCreditAndCoreBluetoothCapacity() throws {
+        let link = LabelifeLink()
+        XCTAssertTrue(link.receive(Data([1, 1])))
+        var pump = try WritePump(Data(0..<34), limit: 16, mode: .queued, link: link)
+        XCTAssertNil(pump.next(canQueue: false))
+        XCTAssertEqual(link.credits, 1)
+        XCTAssertEqual(pump.next(canQueue: true), Data(0..<16))
+        XCTAssertNil(pump.next(canQueue: true))
+        XCTAssertTrue(pump.failure("link lost").message.contains("16/34 bytes"))
+        XCTAssertTrue(link.receive(Data([1, 2])))
+        XCTAssertEqual(pump.next(canQueue: true), Data(16..<32))
+        XCTAssertEqual(pump.next(canQueue: true), Data(32..<34))
+        XCTAssertTrue(pump.complete)
+        XCTAssertEqual(pump.acknowledged, 0)
+    }
+
+    func testLabelifeSelectionUsesObservedNameAndCharacteristicPair() throws {
+        let output = PrinterEndpoint(service: "FF00", characteristic: "FF02", properties: ["write", "writeWithoutResponse"])
+        let replies = PrinterEndpoint(service: "FF00", characteristic: "FF03", properties: ["notify"])
+        let name = "AM-243Z-BT-5AD6"
+        XCTAssertEqual(try PrinterEndpoint.select(for: .labelife, in: [output, replies], peripheralName: name), output)
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .labelife, in: [output, replies], peripheralName: "Other device"))
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .labelife, in: [output], peripheralName: name))
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .labelife, in: [output, output, replies], peripheralName: name))
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .labelife, in: [output, replies, replies], peripheralName: name))
     }
 
     func testFullShippingLabelSplitsZPLGraphicFields() throws {
@@ -124,5 +185,53 @@ final class PrinterTests: XCTestCase {
             // The title and QR at the left stay identical when the caller changes only the art.
             XCTAssertEqual(a.bytes[start..<(start + 50)], b.bytes[start..<(start + 50)])
         }
+    }
+
+    func testEndpointSelectionUsesServiceAndLiveProperties() throws {
+        let printer = PrinterEndpoint(service: "ff00", characteristic: "ff02", properties: ["writeWithoutResponse"])
+        let unrelated = PrinterEndpoint(service: "1234", characteristic: "ff02", properties: ["write"])
+        XCTAssertEqual(try PrinterEndpoint.select(for: .rongta, in: [printer, unrelated]), printer)
+        XCTAssertEqual(try printer.mode(), .queued)
+        XCTAssertThrowsError(try printer.mode(preferred: .acknowledged))
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .rongta, in: [printer, printer]))
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .labelife, in: [printer]))
+        XCTAssertEqual(try PrinterEndpoint.select(for: .labelife, in: [printer], explicit: "ff00/ff02"), printer)
+    }
+
+    func testLiveRongtaWithTwoVendorEndpointsPrefersAdvertisedService() throws {
+        let endpoints = [
+            PrinterEndpoint(service: "FF00", characteristic: "FF02", properties: ["write", "writeWithoutResponse"]),
+            PrinterEndpoint(service: "18F0", characteristic: "2AF1", properties: ["write", "writeWithoutResponse"])
+        ]
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .rongta, in: endpoints))
+        XCTAssertEqual(try PrinterEndpoint.select(for: .rongta, in: endpoints, advertisedServices: ["FEE7", "18F0"]), endpoints[1])
+        XCTAssertEqual(try PrinterEndpoint.select(for: .rongta, in: endpoints, advertisedServices: ["18F0"], explicit: "FF00/FF02"), endpoints[0])
+        XCTAssertThrowsError(try PrinterEndpoint.select(for: .rongta, in: endpoints, advertisedServices: ["18f0", "FF00"]))
+    }
+
+    func testWritesWaitForAcknowledgementsIncludingLastChunk() throws {
+        var pump = try WritePump(Data(0..<10), limit: 4, mode: .acknowledged)
+        for expected in [Data(0..<4), Data(4..<8), Data(8..<10)] {
+            XCTAssertEqual(pump.next(canQueue: false), expected)
+            XCTAssertNil(pump.next(canQueue: true))
+            XCTAssertFalse(pump.complete)
+            pump.didAcknowledge()
+        }
+        XCTAssertTrue(pump.complete)
+        XCTAssertNil(pump.next(canQueue: true))
+        XCTAssertEqual(pump.chunks, 3)
+    }
+
+    func testBackpressureResumesAtFirstUnsentByteAndDisconnectIsUncertain() throws {
+        var pump = try WritePump(Data(0..<8), limit: 4, mode: .queued)
+        XCTAssertNil(pump.next(canQueue: false))
+        XCTAssertTrue(pump.failure("Disconnected").message.contains("No bytes submitted"))
+        XCTAssertEqual(pump.next(canQueue: true), Data(0..<4))
+        XCTAssertNil(pump.next(canQueue: false))
+        XCTAssertTrue(pump.failure("Disconnected").message.contains("4/8 bytes"))
+        XCTAssertEqual(pump.next(canQueue: true), Data(4..<8))
+        XCTAssertTrue(pump.complete)
+        XCTAssertEqual(pump.acknowledged, 0)
+        XCTAssertThrowsError(try WritePump(Data([1]), limit: 0, mode: .queued))
     }
 }
