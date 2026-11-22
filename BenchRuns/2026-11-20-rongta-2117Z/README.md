@@ -23,8 +23,12 @@ James started the self-test from the printer’s own FEED button and power switc
 
 A fingernail darkened the exposed face of a loose label. James checked the open printer and confirmed that this heat-sensitive face was up toward the head, the stock lay flat, and the visible paper path and roller looked clear.
 
-On November 22, James confirmed that the connected brick is the printer’s original adapter and that its output rating is 2.5 A. Rongta specifies 24 V DC, 2.5 A for the ZPL shipping model. James is inspecting the mechanism. Once the printer produces a readable built-in self-test, the next software comparison is a single numbered Mac label on the same stock. [RP421A shipping manual, printed pages 8, 25 and 26](https://cdn.shopify.com/s/files/1/0933/9538/6655/files/40800507RP421A-_-V1.5.pdf?v=1791877401)
-
 After cleaning, James observed that the printer could feed stock and locate a label edge. During the built-in self-test the leading edge advanced a short distance, then stopped while the motor-like sound continued. The paper’s movement was observable. Whether the roller kept turning at that point is unknown.
 
-In James’s open-printer photo, the small turquoise slider with the dark window in the lower clear track matches the adjustable optical media sensor. It stays in position during printing. The two larger turquoise pieces are the paper guides. The black cylinder across the front is the platen roller with a white drive gear at its right end. The fixed, full-width thermal head is in the lid opposite that roller. The gear engagement and the cause of the stop cannot be established from the photo. The next visual check is the roller seating and its visible gear with the printer unplugged. [RP421A inside-view drawing, page 7](https://file.globalso.com/file_manage/4365/20260226/rp421a-user-manual_v1-2_en.pdf#page=7)
+In James’s open-printer photo, the small turquoise slider with the dark window in the lower clear track matches the adjustable optical media sensor. The two larger turquoise pieces are the paper guides. The black cylinder across the front is the platen roller with a white drive gear at its right end. The fixed, full-width thermal head is in the lid opposite that roller. [RP421A inside-view drawing, page 7](https://file.globalso.com/file_manage/4365/20260226/rp421a-user-manual_v1-2_en.pdf#page=7)
+
+## November 22 follow-up with the correct power supply
+
+James found a different power supply connected to the Rongta. The 2.5 A rating he reported earlier was for the adapter he thought was connected. After switching to the correct supply, he reported good print output. The source of that print and its label dimensions were unrecorded. Rongta specifies 24 V DC, 2.5 A for this model. [RP421A shipping manual, printed pages 8, 25 and 26](https://cdn.shopify.com/s/files/1/0933/9538/6655/files/40800507RP421A-_-V1.5.pdf?v=1791877401)
+
+Once the 4 × 2 inch roll is back in the printer, repeat the Mac Bluetooth test with the same ZPL square, a fresh run ID and the correct supply. Record the write trace and check the paper for both the square and the ID so the result can be compared with `WL-R2-2122`.
