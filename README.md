@@ -44,7 +44,7 @@ The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) usi
 | Rongta RP421A, `WL-R2-2122` | One 88-byte ZPL write for a centered black square and ID, acknowledged on `18F0/2AF1`. The SDK status query received zero reply bytes before and after. | James saw the paper feed and confirmed that the label had no marks. [Timestamped trace and paper observation](BenchRuns/2026-11-20-rongta-2117Z/README.md) |
 | Rongta RP421A, power-on self-test | The Mac had disconnected. James used the FEED button and power switch. | Stock advanced with at most a tiny line, followed by motor or roller noise. The thermal face darkened when scratched and was loaded face up. James found the visible path and roller clear. |
 
-On November 22, James found a different supply connected to the Rongta and reported good printing after switching to the correct one. The next Whiplash trial repeats the numbered Mac ZPL mark on 4 × 2 inch stock. [Power supply follow-up](BenchRuns/2026-11-20-rongta-2117Z/README.md#november-22-follow-up-with-the-correct-power-supply)
+On November 22, James reported good printing after switching the Rongta to its correct power supply. With that supply and the 4 × 2 inch stock loaded, the Mac repeated the square and text as `WL-R3-2350`. The Bluetooth endpoint acknowledged all 88 bytes, and James confirmed the paper advanced completely blank. [Power supply follow-up](BenchRuns/2026-11-20-rongta-2117Z/README.md#november-22-follow-up-with-the-correct-power-supply) · [Repeat trial and trace](BenchRuns/2026-11-22-rongta-2349Z/README.md)
 
 ### Labelife wire format
 
