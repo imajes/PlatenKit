@@ -2,6 +2,8 @@
 
 A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Labelife AM-243-BT has produced a QR label and an ID-only label from the Mac. Physical trials from the Whiplash iPhone app are the next milestone.
 
+To use the library directly in a native Swift app, follow the [iPhone integration quickstart](QUICKSTART.md). It covers an offline preview, adding the local package in Xcode, owning a printer session in SwiftUI, and verifying the result on paper.
+
 ## Print one Labelife label from the Mac
 
 The bench unit advertises as `AM-243Z-BT-5AD6`. Its sticker says AM-243-BT and its hardware identifier is PM-241-BT. The loaded stock is 4 inches across the print head and 6 inches along the feed, or 101.6 × 152.4 mm. The manufacturer’s iPhone app printed successfully. Disconnect that app before using the bench. The Mac connected from the probe with its Bluetooth Settings left alone.
