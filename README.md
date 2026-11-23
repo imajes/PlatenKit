@@ -44,6 +44,14 @@ swift run printer-bench preview --width-mm 101.6 --height-mm 50.8 --dpi 203 --ru
 
 The same font flags work with `smoke` and `test-label`. On the Rongta, omit the native text diagnostic’s `--language` switch when choosing a font. In the iPhone harness, enter `Karla` in **Font** and `275` in **Variable weight**, or tap **Choose font file** to load a face from Files for this session. [Swift integration example](QUICKSTART.md#3-wire-scan-connect-print-and-disconnect)
 
+### Karla 275 and 300 on 4 × 2 inch stock
+
+Both example labels contain `Box-014-Kitchen` at the same size, with the same artwork and QR payload. The enlarged crops show the printer dots at twice their native size. For this title, 275 uses 3,151 black dots and 300 (Light) uses 3,289. The QR and artwork match pixel for pixel. [Full 275 label](Examples/Fonts/Karla-275.png) · [Full 300 label](Examples/Fonts/Karla-300.png)
+
+![Karla at weights 275 and 300, rendered at 203 dpi](Examples/Fonts/Karla-weights.png)
+
+For each weight, the ZPL graphic and the decompressed TSPL bitmap were checked offline against all 812 × 406 dots in the corresponding PNG. Each PNG’s QR decoded to `Box-014-Kitchen`. The examples use 4 × 2 inch stock for both encoders to keep the comparison at one physical size. To regenerate the 300 sample, change the preview command above to `--font-weight 300 --output karla-300.png`.
+
 ## Physical evidence
 
 The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) using Core Bluetooth. The bench generated jobs at 203 dpi. Each Bluetooth print started from a fresh scan of the selected printer. The Labelife roll was 4 × 6 inches. The Rongta roll was 4 inches wide by 2 inches high (101.6 × 50.8 mm).
