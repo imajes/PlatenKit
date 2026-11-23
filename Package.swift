@@ -13,7 +13,7 @@ let package = Package(
         .executable(name: "printer-bench", targets: ["PrinterBench"])
     ],
     targets: [
-        .target(name: "WhiplashPrinting"),
+        .target(name: "WhiplashPrinting", resources: [.copy("Resources/Karla-Variable.ttf"), .copy("Resources/OFL.txt")]),
         .executableTarget(
             name: "PrinterBench", dependencies: ["WhiplashPrinting"], exclude: ["Info.plist"],
             linkerSettings: [.unsafeFlags([

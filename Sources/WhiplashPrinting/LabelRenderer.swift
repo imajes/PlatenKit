@@ -35,39 +35,49 @@ public enum LabelRenderer {
         return try LabelBitmap(width: stock.widthDots, height: stock.heightDots, grayscale: pixels)
     }
 
-    static func textPage(_ text: String, stock: LabelStock) throws -> CGImage {
+    static func textPage(_ text: String, stock: LabelStock, font: LabelFont? = nil) throws -> CGImage {
         let context = try canvas(stock)
-        _ = try drawTitle(text, on: context)
+        _ = try drawTitle(text, on: context, font: font)
         guard let image = context.makeImage() else { throw BenchError("Could not finish the text label.") }
         return image
     }
 
-    private static func drawTitle(_ text: String, on context: CGContext) throws -> (margin: CGFloat, font: CGFloat) {
+    private static func drawTitle(_ text: String, on context: CGContext, font: LabelFont?) throws -> (margin: CGFloat, font: CGFloat) {
         let w = CGFloat(context.width), h = CGFloat(context.height)
         let margin = max(4, (min(w, h) * 0.045).rounded())
         let ink = CGColor(gray: 0, alpha: 1)
         let fontSize = min(64, h * 0.13)
-        func line(size: CGFloat) -> CTLine {
+        func typeface(_ size: CGFloat) -> CTFont {
+            font?.sized(size) ?? CTFontCreateWithName("Helvetica-Bold" as CFString, size, nil)
+        }
+        func line(using face: CTFont) -> CTLine {
             let attributes = [
-                NSAttributedString.Key(kCTFontAttributeName as String): CTFontCreateWithName("Helvetica-Bold" as CFString, size, nil),
+                NSAttributedString.Key(kCTFontAttributeName as String): face,
                 NSAttributedString.Key(kCTForegroundColorAttributeName as String): ink
             ] as [NSAttributedString.Key: Any]
             return CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
         }
-        let naturalWidth = CTLineGetTypographicBounds(line(size: fontSize), nil, nil, nil)
+        let naturalWidth = CTLineGetTypographicBounds(line(using: typeface(fontSize)), nil, nil, nil)
         let fittedFont = min(fontSize, fontSize * (w - 2 * margin) / max(1, naturalWidth))
         guard fittedFont >= 8 else { throw BenchError("Text is too long for the loaded stock.") }
         context.textPosition = CGPoint(x: margin, y: h - margin - fittedFont)
-        CTLineDraw(line(size: fittedFont), context)
+        let face = typeface(fittedFont)
+        let fittedLine = line(using: face)
+        try font?.checkGlyphs(in: fittedLine, using: face)
+        CTLineDraw(fittedLine, context)
         return (margin, fittedFont)
     }
 
     /// Compose one page for either printer. The built-in asymmetric mark makes orientation visible.
     public static func compose(artwork: CGImage? = nil, text: String, qrPayload: String, stock: LabelStock) throws -> CGImage {
+        try compose(artwork: artwork, text: text, qrPayload: qrPayload, stock: stock, font: nil)
+    }
+
+    public static func compose(artwork: CGImage? = nil, text: String, qrPayload: String, stock: LabelStock, font: LabelFont?) throws -> CGImage {
         guard !text.isEmpty, !qrPayload.isEmpty else { throw BenchError("Supply text and a QR payload.") }
         let context = try canvas(stock)
         let w = CGFloat(stock.widthDots), h = CGFloat(stock.heightDots)
-        let (margin, fittedFont) = try drawTitle(text, on: context)
+        let (margin, fittedFont) = try drawTitle(text, on: context, font: font)
         let generator = CIFilter.qrCodeGenerator()
         generator.message = Data(qrPayload.utf8)
         generator.correctionLevel = "M"

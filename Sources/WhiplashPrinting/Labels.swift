@@ -62,6 +62,20 @@ public struct LabelBitmap: Sendable {
         }
         (self.width, self.height, bytes) = (width, height, packed)
     }
+
+    /// Display the same one-bit rows the printer adapters encode. A set bit marks a black dot on paper.
+    public func makeImage() throws -> CGImage {
+        // DeviceGray and PNG encode black as zero. Invert the packed rows, including white padding.
+        let grayscale = Data(bytes.map { ~$0 })
+        guard let provider = CGDataProvider(data: grayscale as CFData),
+              let image = CGImage(width: width, height: height, bitsPerComponent: 1, bitsPerPixel: 1,
+                                  bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceGray(),
+                                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+                                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent) else {
+            throw BenchError("Could not create the monochrome label preview.")
+        }
+        return image
+    }
 }
 
 public struct LabelJob: Sendable {
@@ -84,8 +98,12 @@ public struct LabelJob: Sendable {
 
     /// Render the ID as pixels on the measured stock and encode one copy for the selected printer.
     public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock) throws -> Self {
+        try smoke(id: id, model: model, stock: stock, font: nil)
+    }
+
+    public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock, font: LabelFont?) throws -> Self {
         try validate(id)
-        let page = try LabelRenderer.textPage(id, stock: stock)
+        let page = try LabelRenderer.textPage(id, stock: stock, font: font)
         return try image(page, id: id, model: model, stock: stock)
     }
 

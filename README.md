@@ -30,6 +30,20 @@ swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id WL-C
 swift run printer-bench image --model labelife --device "$printer_id" --width-mm 101.6 --height-mm 152.4 --file control.png
 ```
 
+## Choose the label font
+
+Whiplash draws the text on the Mac or iPhone at the stock’s print resolution. The Rongta receives the resulting dots as a ZPL graphic, and the Labelife receives them as a TSPL bitmap. The same font choice applies to an ID-only label and to the title on an artwork-and-QR label. A pre-rendered image carries its own lettering.
+
+Use `--font Karla --font-weight 275` for the bundled upright Karla. Its OpenType weight axis covers 200 through 800, including Light at 300. For another face, use its exact PostScript name, such as `--font Courier-Bold`, or pass a standalone font with `--font-file /path/to/face.ttf`. The file can also be OpenType (`.otf`). Set a numeric weight for a font with a variable weight axis. Fixed-weight faces use the weight in their file or name. An unavailable face, unsupported weight, or character the selected font cannot draw produces an error before submission. With no font selected, the renderer keeps the original Helvetica Bold layout. [Karla font metadata](https://raw.githubusercontent.com/google/fonts/main/ofl/karla/METADATA.pb) · [Bundled font license](Sources/WhiplashPrinting/Resources/OFL.txt)
+
+For an offline preview of the 4 × 2 inch roll, use a new PNG filename. `--monochrome` exports the same black and white dots the print adapters use, including their threshold for converting gray edges to black or white.
+
+```zsh
+swift run printer-bench preview --width-mm 101.6 --height-mm 50.8 --dpi 203 --run-id Box-014-Kitchen --font Karla --font-weight 275 --monochrome --output karla-275.png
+```
+
+The same font flags work with `smoke` and `test-label`. On the Rongta, omit the native text diagnostic’s `--language` switch when choosing a font. In the iPhone harness, enter `Karla` in **Font** and `275` in **Variable weight**, or tap **Choose font file** to load a face from Files for this session. [Swift integration example](QUICKSTART.md#3-wire-scan-connect-print-and-disconnect)
+
 ## Physical evidence
 
 The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) using Core Bluetooth. The bench generated jobs at 203 dpi. Each Bluetooth print started from a fresh scan of the selected printer. The Labelife roll was 4 × 6 inches. The Rongta roll was 4 inches wide by 2 inches high (101.6 × 50.8 mm).

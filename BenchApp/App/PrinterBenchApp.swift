@@ -8,7 +8,8 @@ import WhiplashPrinting
 
 private struct BenchView: View {
     @StateObject private var bench = BenchState()
-    @State private var pickingArtwork = false
+    @State private var pickingFile = false
+    @State private var fileType: UTType = .image
 
     var body: some View {
         NavigationStack {
@@ -52,7 +53,20 @@ private struct BenchView: View {
                         Picker("Trial", selection: $bench.trial) {
                             ForEach(["Initial connection", "After reconnect", "After power cycle and app relaunch"], id: \.self) { Text($0) }
                         }
-                        Button(bench.artworkName.isEmpty ? "Choose artwork (optional)" : bench.artworkName) { pickingArtwork = true }
+                        if bench.fontFilename.isEmpty {
+                            LabeledContent("Font") {
+                                TextField("Helvetica-Bold", text: $bench.fontName)
+                                    .textInputAutocapitalization(.never).autocorrectionDisabled().multilineTextAlignment(.trailing)
+                            }
+                        } else {
+                            LabeledContent("Font file", value: bench.fontFilename)
+                            Button("Use a named font", action: bench.clearFontFile)
+                        }
+                        LabeledContent("Variable weight") {
+                            TextField("Font default", text: $bench.fontWeight).keyboardType(.numberPad).multilineTextAlignment(.trailing)
+                        }
+                        Button("Choose font file") { fileType = .font; pickingFile = true }
+                        Button(bench.artworkName.isEmpty ? "Choose artwork (optional)" : bench.artworkName) { fileType = .image; pickingFile = true }
                         Button("Print ID only") { bench.printOne(rich: false) }
                         Button("Print artwork, text and QR") { bench.printOne(rich: true) }
                     }.disabled(bench.busy)
@@ -72,9 +86,10 @@ private struct BenchView: View {
                 }
             }
             .navigationTitle("Printer bench")
-            .fileImporter(isPresented: $pickingArtwork, allowedContentTypes: [.image]) { result in
+            .fileImporter(isPresented: $pickingFile, allowedContentTypes: [fileType]) { result in
                 switch result {
-                case .success(let url): bench.importArtwork(url)
+                case .success(let url):
+                    if fileType == .font { bench.importFont(url) } else { bench.importArtwork(url) }
                 case .failure(let error): bench.record(error.localizedDescription)
                 }
             }

@@ -12,7 +12,9 @@ printer-bench smoke|test-label|image --device UUID --model rongta|labelife --wid
     [--endpoint SERVICE/CHARACTERISTIC] [--mode acknowledged|queued] [--seconds 5] [--dpi 203] [--run-id ID]
     image requires --file PATH; test-label accepts --artwork PATH
     smoke renders an ID as a bitmap. On the Rongta, --language zpl|tspl selects a native-text diagnostic.
-printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203]
+printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203] [--monochrome]
+    preview, test-label and raster smoke accept --font POSTSCRIPT-NAME or --font-file PATH, plus optional --font-weight INTEGER.
+    Karla is bundled. Use --font Karla --font-weight 275 for its upright variable face.
 
 Width is across the print head. Height is the feed length.
 Each print command scans again, connects to the selected UUID, inspects it, and submits exactly one job.
@@ -26,12 +28,13 @@ private struct Options {
     init(_ args: [String]) throws {
         command = args.first ?? "help"
         let printOptions = ["--device", "--seconds", "--model", "--width-mm", "--height-mm", "--dpi", "--endpoint", "--mode", "--run-id"]
+        let fontOptions = ["--font", "--font-file", "--font-weight"]
         let allowed: [String: [String]] = [
             "scan": ["--match", "--seconds"], "inspect": ["--device", "--seconds"],
             "rongta-status": ["--device", "--seconds", "--endpoint", "--mode"],
             "rongta-mark": printOptions.filter { $0 != "--model" },
-            "smoke": printOptions + ["--language"], "test-label": printOptions + ["--artwork"], "image": printOptions + ["--file"],
-            "preview": ["--width-mm", "--height-mm", "--dpi", "--output", "--artwork", "--run-id"],
+            "smoke": printOptions + fontOptions + ["--language"], "test-label": printOptions + fontOptions + ["--artwork"], "image": printOptions + ["--file"],
+            "preview": ["--width-mm", "--height-mm", "--dpi", "--output", "--artwork", "--run-id", "--monochrome"] + fontOptions,
             "help": [], "--help": [], "-h": []
         ]
         guard let flags = allowed[command] else { throw BenchError("Unknown command \(command).\n\(usage)") }
@@ -39,7 +42,13 @@ private struct Options {
         var index = 1
         while index < args.count {
             let key = args[index]
-            guard flags.contains(key), result[key] == nil, index + 1 < args.count, !args[index + 1].hasPrefix("--") else {
+            guard flags.contains(key), result[key] == nil else { throw BenchError("Unknown or repeated option \(key).\n\(usage)") }
+            if key == "--monochrome" {
+                result[key] = "true"
+                index += 1
+                continue
+            }
+            guard index + 1 < args.count, !args[index + 1].hasPrefix("--") else {
                 throw BenchError("Unknown, repeated, or incomplete option \(key).\n\(usage)")
             }
             result[key] = args[index + 1]
@@ -57,6 +66,21 @@ private struct Options {
         guard let width = Double(try require("--width-mm")), let height = Double(try require("--height-mm")),
               let dpi = Int(values["--dpi"] ?? "203") else { throw BenchError("Invalid stock dimensions or DPI.") }
         return try LabelStock(widthMM: width, heightMM: height, dpi: dpi)
+    }
+
+    func font() throws -> LabelFont? {
+        let weight = try values["--font-weight"].map { raw in
+            guard let value = Int(raw) else { throw BenchError("Use an integer for --font-weight.") }
+            return value
+        }
+        switch (values["--font"], values["--font-file"]) {
+        case let (name?, nil): return try LabelFont(postScriptName: name, weight: weight)
+        case let (nil, path?): return try LabelFont(data: Data(contentsOf: URL(fileURLWithPath: path)), weight: weight)
+        case (.some, .some): throw BenchError("Choose one font source with --font or --font-file.")
+        case (nil, nil):
+            guard weight == nil else { throw BenchError("Choose --font or --font-file when specifying a weight.") }
+            return nil
+        }
     }
 }
 
@@ -106,13 +130,16 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
         let command = options.command, values = options.values
         if ["help", "-h", "--help"].contains(command) { writeLine(usage); return }
         let id = values["--run-id"] ?? LabelJob.newID()
+        let font = try options.font()
         func fixture(_ stock: LabelStock) throws -> CGImage {
-            try LabelRenderer.compose(artwork: values["--artwork"].map(loadImage), text: id, qrPayload: id, stock: stock)
+            try LabelRenderer.compose(artwork: values["--artwork"].map(loadImage), text: id, qrPayload: id, stock: stock, font: font)
         }
         if command == "preview" {
             let stock = try options.stock()
-            try savePNG(fixture(stock), dpi: stock.dpi, path: options.require("--output"))
-            writeLine("Rendered \(id)")
+            let page = try fixture(stock)
+            let preview = try values["--monochrome"] == nil ? page : LabelRenderer.bitmap(from: page, stock: stock).makeImage()
+            try savePNG(preview, dpi: stock.dpi, path: options.require("--output"))
+            writeLine("Rendered \(id)" + (font.map { " · \($0.description)" } ?? ""))
             return
         }
         guard let seconds = Double(values["--seconds"] ?? "5") else { throw BenchError("Invalid scan duration.") }
@@ -145,15 +172,21 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
             case "smoke":
                 if let raw = values["--language"] {
                     guard let language = PrinterLanguage(rawValue: raw.uppercased()) else { throw BenchError("Use zpl or tspl for --language.") }
-                    label = try .smoke(id: id, model: model, stock: stock, language: language)
+                    if model == .labelife && language == .tspl {
+                        label = try .smoke(id: id, model: model, stock: stock, font: font)
+                    } else {
+                        guard font == nil else { throw BenchError("Omit --language to print a raster ID with the selected font.") }
+                        label = try .smoke(id: id, model: model, stock: stock, language: language)
+                    }
                 } else {
-                    label = try .smoke(id: id, model: model, stock: stock)
+                    label = try .smoke(id: id, model: model, stock: stock, font: font)
                 }
             case "image": label = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock)
             default: label = try .image(fixture(stock), id: id, model: model, stock: stock)
             }
             job = label
             writeLine("Requested \(command) · \(id) · \(model.name) · \(label.language.rawValue) · \(stock.description) · paper unobserved")
+            if let font { writeLine("Font \(font.description)") }
         }
         let devices = try await radio.scan(seconds: seconds)
         guard let device = devices.first(where: { $0.id == target }) else { throw BenchError("Selected peripheral did not appear in the current scan.") }

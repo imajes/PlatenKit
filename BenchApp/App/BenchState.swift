@@ -15,11 +15,15 @@ import WhiplashPrinting
     @Published var mode = ""
     @Published var trial = "Initial connection"
     @Published var artworkName = ""
+    @Published var fontName = ""
+    @Published var fontWeight = ""
+    @Published private(set) var fontFilename = ""
     @Published var busy = false
     @Published var journal = ""
     @Published var lastID = UserDefaults.standard.string(forKey: "lastPrintRun") ?? ""
     @Published var observation = ""
     private var artwork: CGImage?
+    private var fontData: Data?
     private let radio = BluetoothPrinter()
     private let logURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("printer-bench.log")
 
@@ -116,6 +120,33 @@ import WhiplashPrinting
         } catch { record("Artwork: \(error.localizedDescription)") }
     }
 
+    func importFont(_ url: URL) {
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let data = try Data(contentsOf: url)
+            _ = try LabelFont(data: data)
+            fontData = data
+            fontFilename = url.lastPathComponent
+        } catch { record("Font: \(error.localizedDescription)") }
+    }
+
+    func clearFontFile() {
+        fontData = nil
+        fontFilename = ""
+    }
+
+    private func selectedFont() throws -> LabelFont? {
+        let weightText = fontWeight.trimmingCharacters(in: .whitespacesAndNewlines)
+        let weight = Int(weightText)
+        guard weightText.isEmpty || weight != nil else { throw BenchError("Enter a whole-number weight.") }
+        if let fontData { return try LabelFont(data: fontData, weight: weight) }
+        let name = fontName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty { return try LabelFont(postScriptName: name, weight: weight) }
+        guard weight == nil else { throw BenchError("Enter a font name or choose a font file for this weight.") }
+        return nil
+    }
+
     func printOne(rich: Bool) {
         perform {
             guard let w = Double(self.width), let h = Double(self.height), let dpi = Int(self.dpi) else {
@@ -125,16 +156,18 @@ import WhiplashPrinting
             let device = self.devices.first { $0.id == self.radio.connectedID }
             let endpoint = try PrinterEndpoint.select(for: self.model, in: self.endpoints, advertisedServices: device?.advertisedServices ?? [], peripheralName: device?.name, explicit: self.endpointID.isEmpty ? nil : self.endpointID)
             let id = LabelJob.newID()
+            let font = try self.selectedFont()
             let job: LabelJob
             if rich {
-                let page = try LabelRenderer.compose(artwork: self.artwork, text: id, qrPayload: id, stock: stock)
+                let page = try LabelRenderer.compose(artwork: self.artwork, text: id, qrPayload: id, stock: stock, font: font)
                 job = try .image(page, id: id, model: self.model, stock: stock)
             } else {
-                job = try .smoke(id: id, model: self.model, stock: stock)
+                job = try .smoke(id: id, model: self.model, stock: stock, font: font)
             }
             self.lastID = id
             UserDefaults.standard.set(id, forKey: "lastPrintRun")
             self.record("\(self.trial) · \(rich ? "artwork, text, QR" : "ID only") · \(id) · paper unobserved")
+            if let font { self.record("Font \(font.description)") }
             _ = try await self.radio.submit(job, to: endpoint, mode: WriteMode(rawValue: self.mode))
         }
     }
