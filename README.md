@@ -46,6 +46,8 @@ The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) usi
 
 On November 22, the Rongta printed its built-in self-test with the correct power supply. The photographed page reports `RP421`, firmware `V4.31` (2024-01-30), ZPL and 203 dpi. James recalls that page was on the larger roll. He repeated the self-test on the confirmed 4 × 2 inch roll, where it printed on one label and stopped at its end. On the same stock and supply, the Mac’s `WL-R3-2350` on `18F0/2AF1` and `WL-R4-2359` on `FF00/FF02` each received an 88-byte write acknowledgement and fed completely blank paper. [Self-test and first endpoint](BenchRuns/2026-11-22-rongta-2349Z/README.md#built-in-self-test-on-both-rolls) · [Second endpoint and trace](BenchRuns/2026-11-22-rongta-2359Z/README.md)
 
+James then confirmed a physical iPhone print from **RT Elabel**, the app Rongta lists for the RP421A. He selected ZPL in the app. Its published version history also documents a TSPL default for the RP421 profile. On the 4 × 2 inch roll the Mac subsequently sent one native text ID per language through `18F0/2AF1`. [RT Elabel evidence and both text traces](BenchRuns/2026-11-23-rongta-0025Z/README.md) · [Publisher’s version history](https://apps.apple.com/us/app/rt-elabel/id6714471637)
+
 ### Labelife wire format
 
 The selected unit advertised `1812` and `AF30`. Service discovery after connecting found `FF00/FF02` for writes and `FF00/FF03` for notifications. Automatic selection checks the AM-243 or PM-241 Bluetooth model name and the properties of both characteristics. The CLI accepts an explicit service/characteristic from the current inspection for a separately identified variant.

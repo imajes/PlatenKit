@@ -17,7 +17,7 @@ In the local Rongta iOS SDK, `PrinterManager.m` passes label width and height in
 
 An offline check passed a 4 × 2 inch page through the shared renderer and Rongta image encoder. The resulting ZPL contained a single `^GFA` graphic with 41,412 raster bytes at a 102-byte stride. Extracting those bytes and unpacking the dots produced an 812 × 406 image whose QR decoded to `WL-R-PREVIEW`. Physical raster output remains unverified.
 
-James reports that he has been unable to get a printed label from the Rongta iPhone app. The app’s submission state is unknown.
+James subsequently identified **RT Elabel** as the Rongta iPhone app that produced a physical label. Earlier unsuccessful reports involved other apps. He selected ZPL in RT Elabel when prompted. [Vendor app evidence and subsequent Mac trials](../2026-11-23-rongta-0025Z/README.md)
 
 ## Planned USB comparison
 
