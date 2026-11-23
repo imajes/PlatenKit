@@ -197,3 +197,9 @@ To run the bench on your own iPhone, select your development team in **Signing &
 Select the model, tap **Scan nearby**, choose the unit, then **Connect and inspect**. Leave **Match printer profile** selected for this Labelife. Use **Print artwork, text and QR** for each acceptance run. The app saves its journal across launches. Use **Paper check** to record the label count, readable text and artwork, and the QR scanned from the label. **Share full journal** exports the results.
 
 For each printer, request one label on the initial connection, one after disconnecting and reconnecting, and one after restarting the printer and relaunching the app. Use a fresh ID each time. Each request must produce exactly one label on the selected unit, with the QR decoding to its run ID. Log host OS, app and firmware versions when known, stock, transport, command language, discovery, endpoint, write result, and physical observation.
+
+## License and artwork
+
+PlatenKit source code and documentation are available under the MIT License. The bundled Karla font is distributed under the SIL Open Font License 1.1. [MIT License](LICENSE) · [Karla copyright and license](Sources/PlatenKit/Resources/OFL.txt)
+
+The Moon fixture and printed comparisons use a Lunar Reconnaissance Orbiter mosaic from NASA’s Scientific Visualization Studio. [Original image and credits](https://science.nasa.gov/resource/moon-mosaic/)
