@@ -29,6 +29,6 @@ In James’s open-printer photo, the small turquoise slider with the dark window
 
 ## November 22 follow-up with the correct power supply
 
-James found a different power supply connected to the Rongta. The 2.5 A rating he reported earlier was for the adapter he thought was connected. After switching to the correct supply, he reported good print output. The source of that print and its label dimensions were unrecorded. Rongta specifies 24 V DC, 2.5 A for this model. [RP421A shipping manual, printed pages 8, 25 and 26](https://cdn.shopify.com/s/files/1/0933/9538/6655/files/40800507RP421A-_-V1.5.pdf?v=1791877401)
+James found a different power supply connected to the Rongta. The 2.5 A rating he reported earlier was for the adapter he thought was connected. After switching to the correct supply, he printed the built-in self-test. He recalls using the larger 4 × 6 inch stock for the photographed page. Rongta specifies 24 V DC, 2.5 A for this model. [RP421A shipping manual, printed pages 8, 25 and 26](https://cdn.shopify.com/s/files/1/0933/9538/6655/files/40800507RP421A-_-V1.5.pdf?v=1791877401)
 
 After reloading the 4 × 2 inch roll, James and the Mac probe repeated the same square and text with the correct supply. The printer acknowledged `WL-R3-2350` and advanced blank paper. [Repeat trial and trace](../2026-11-22-rongta-2349Z/README.md)

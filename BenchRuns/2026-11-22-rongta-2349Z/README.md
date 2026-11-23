@@ -11,4 +11,10 @@ On November 22, 2026, at 17:50 CST, the Mac sent one ZPL label with a solid blac
 | Status | The 11-byte status query was acknowledged before and after the label. Each three-second observation window received zero reply bytes. The Mac requested disconnect at 23:50:51.651 UTC. |
 | Paper | The stock advanced. Neither the square nor the run ID appeared. |
 
-Comparing the captured Bluetooth payloads with `WL-R2-2122` shows that the two jobs differed only in the run ID. Both produced blank paper. James separately reported a good print after changing the supply. The next comparison is to use the method that produced that print on this same 4 × 2 inch roll. [Earlier run and power supply history](../2026-11-20-rongta-2117Z/README.md)
+Comparing the captured Bluetooth payloads with `WL-R2-2122` shows that the two jobs differed only in the run ID. Both produced blank paper. [Earlier run and power supply history](../2026-11-20-rongta-2117Z/README.md)
+
+## Built-in self-test on both rolls
+
+After changing to the correct supply, James photographed a clearly printed FEED-button self-test. He recalls the photographed sheet was the larger 4 × 6 inch stock. The page identifies the printer as `RP421`, firmware `V4.31` dated `2024-01-30`, command language `ZPL`, resolution `203` dpi and media type `label`. It lists a maximum print width of 104 mm. Both `DENSITY1` and `DENSITY2` read 8. The configured BLE name is `RP421-A8C5-B`. The Mac discovered `RP421-A8C5` during the Bluetooth trial.
+
+After the blank `WL-R3-2350` job, James repeated the FEED-button self-test on the loaded 4 × 2 inch roll with the correct supply. The self-test printed on one short label and stopped at its end. This establishes that the printer can mark that stock under the same power and loading conditions as the blank Mac job.

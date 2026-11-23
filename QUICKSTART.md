@@ -1,6 +1,6 @@
 # Print from a native Swift iPhone app
 
-The planned Whiplash iPhone app can import `WhiplashPrinting` directly through Swift Package Manager. The package takes a rendered page, physical label dimensions and a run ID, and sends one job to the selected Bluetooth printer. The included SwiftUI bench is a working example. The Labelife has produced readable labels and a scannable QR from the Mac. The Rongta acknowledged the Mac’s numbered ZPL label and fed blank 4 × 2 inch stock even with the correct power supply. Physical iPhone acceptance is pending for both. [Bench evidence](README.md#physical-evidence)
+The planned Whiplash iPhone app can import `WhiplashPrinting` directly through Swift Package Manager. The package takes a rendered page, physical label dimensions and a run ID, and sends one job to the selected Bluetooth printer. The included SwiftUI bench is a working example. The Labelife has produced readable labels and a scannable QR from the Mac. The Rongta prints its built-in self-test on the 4 × 2 inch roll. The Mac’s numbered ZPL labels on two Bluetooth endpoints fed blank on that same roll. Physical iPhone acceptance is pending for both. [Bench evidence](README.md#physical-evidence)
 
 ## 1. Build and preview a label on the Mac
 
