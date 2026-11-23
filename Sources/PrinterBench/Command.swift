@@ -10,7 +10,8 @@ printer-bench rongta-status --device UUID [--endpoint SERVICE/WRITE] [--mode ack
 printer-bench rongta-mark --device UUID --width-mm W --height-mm H [--run-id ID] [--endpoint SERVICE/WRITE] [--mode acknowledged|queued] [--seconds 5]
 printer-bench smoke|test-label|image --device UUID --model rongta|labelife --width-mm W --height-mm H
     [--endpoint SERVICE/CHARACTERISTIC] [--mode acknowledged|queued] [--seconds 5] [--dpi 203] [--run-id ID]
-    image requires --file PATH; test-label accepts --artwork PATH; smoke accepts --language zpl|tspl
+    image requires --file PATH; test-label accepts --artwork PATH
+    smoke renders an ID as a bitmap. On the Rongta, --language zpl|tspl selects a native-text diagnostic.
 printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203]
 
 Width is across the print head. Height is the feed length.
@@ -142,11 +143,12 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
             switch command {
             case "rongta-mark": label = try .rongtaMark(id: id, stock: stock)
             case "smoke":
-                let language = try values["--language"].map { raw in
-                    guard let value = PrinterLanguage(rawValue: raw.uppercased()) else { throw BenchError("Use zpl or tspl for --language.") }
-                    return value
+                if let raw = values["--language"] {
+                    guard let language = PrinterLanguage(rawValue: raw.uppercased()) else { throw BenchError("Use zpl or tspl for --language.") }
+                    label = try .smoke(id: id, model: model, stock: stock, language: language)
+                } else {
+                    label = try .smoke(id: id, model: model, stock: stock)
                 }
-                label = try .smoke(id: id, model: model, stock: stock, language: language ?? model.defaultLanguage)
             case "image": label = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock)
             default: label = try .image(fixture(stock), id: id, model: model, stock: stock)
             }

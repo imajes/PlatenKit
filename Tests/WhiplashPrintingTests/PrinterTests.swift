@@ -107,13 +107,29 @@ final class PrinterTests: XCTestCase {
         for model in PrinterModel.allCases {
             let job = try LabelJob.smoke(id: "WL-123", model: model, stock: stock)
             let bytes = String(decoding: job.bytes, as: UTF8.self)
-            if model == .rongta { XCTAssertTrue(bytes.contains("WL-123")) }
+            if model == .rongta { XCTAssertTrue(bytes.contains("^GFA,")) }
             else { XCTAssertTrue(bytes.contains("BITMAP 0,0,")) }
             XCTAssertTrue(bytes.hasSuffix(model == .rongta ? "^PQ1^XZ" : "PRINT 1,1\r\n"))
             XCTAssertThrowsError(try LabelJob.smoke(id: "A^XZ\r\n", model: model, stock: stock))
         }
         XCTAssertThrowsError(try LabelStock(widthMM: .nan, heightMM: 10))
         XCTAssertThrowsError(try LabelBitmap(width: 9, height: 8, grayscale: []))
+    }
+
+    func testRongtaIDOnlyEncodesTheTextAsOneFourByTwoGraphic() throws {
+        let stock = try LabelStock(widthMM: 101.6, heightMM: 50.8, dpi: 203)
+        let id = "WL-G9-0035"
+        let job = try LabelJob.smoke(id: id, model: .rongta, stock: stock)
+        let page = try LabelRenderer.textPage(id, stock: stock)
+        let imageJob = try LabelJob.image(page, id: id, model: .rongta, stock: stock)
+        let wire = String(decoding: job.bytes, as: UTF8.self)
+        XCTAssertEqual(job.language, .zpl)
+        XCTAssertEqual(job.bytes, imageJob.bytes)
+        XCTAssertTrue(wire.hasPrefix("^XA^PW812^LL406^LH0,0^FO0,0^GFA,41412,41412,102,"))
+        XCTAssertTrue(wire.hasSuffix("^FS^PQ1^XZ"))
+        XCTAssertEqual(job.bytes.count, 82_882)
+        let anotherID = try LabelJob.smoke(id: "WL-G9-0036", model: .rongta, stock: stock)
+        XCTAssertNotEqual(job.bytes, anotherID.bytes)
     }
 
     func testRenderedPagePreservesQRPayloadModulesAndQuietZone() throws {

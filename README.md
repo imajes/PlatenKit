@@ -67,7 +67,13 @@ swift run printer-bench scan --match RP421 --seconds 15
 printer_id='UUID-FROM-THIS-MACS-SCAN'
 ```
 
-To compare command languages, print a single text ID near the top-left of the 4 × 2 inch stock. Choose `zpl` or `tspl` for one run at a time. This option selects the encoding on the Mac. Each invocation sends one text label with the current media settings and passively logs the outgoing bytes, write acknowledgements and incoming notifications. The TSPL job uses the printer’s built-in font.
+To print one ID on the 4 × 2 inch roll, run the command below. It draws a fresh ID as a bitmap, sets the ZPL page dimensions and origin, and requests one copy. On this unit the default profile selects the advertised `18F0` service and the writable `2AF1` characteristic. The 4 × 2 inch page took about 43 seconds to transfer in the confirmed run. [First print, source image and timing](BenchRuns/2026-11-23-rongta-0036Z/README.md)
+
+```zsh
+swift run printer-bench smoke --model rongta --device "$printer_id" --width-mm 101.6 --height-mm 50.8 --seconds 15
+```
+
+For a command-language diagnostic, add `--language zpl` or `--language tspl`. Each invocation sends one ID in the printer’s built-in font using its current media settings, and logs the outgoing bytes, write acknowledgements and any incoming notifications. On this unit the ZPL diagnostic fed blank stock and the TSPL diagnostic produced no movement. [Native-text comparison](BenchRuns/2026-11-23-rongta-0025Z/README.md)
 
 ```zsh
 swift run printer-bench smoke --model rongta --device "$printer_id" --language zpl --endpoint 18F0/2AF1 --width-mm 101.6 --height-mm 50.8
@@ -126,7 +132,7 @@ swift build -c release
 swift run printer-bench help
 ```
 
-The tests cover complete Labelife pages, LZO block boundaries and byte polarity, odd-width padding, ZPL field limits, supplied artwork, QR module layout, profile selection, packet credits, queued and acknowledged writes, cancellation, stale completions and interrupted submissions. The Rongta diagnostics tests check the SDK query bytes, the three mapped reply endpoints, the byte-for-byte trace display and the single-format 4 × 2 inch mark. An independent bench check also decompressed the actual Labelife QR job with liblzo2, compared every raster dot with the PNG, and decoded the QR from those bytes. liblzo2 is only needed to repeat that independent comparison.
+The tests cover complete Labelife pages, LZO block boundaries and byte polarity, odd-width padding, ZPL field limits, supplied artwork, QR module layout, profile selection, packet credits, queued and acknowledged writes, cancellation, stale completions and interrupted submissions. For the Rongta, they check that the default ID uses the rendered image bytes and one copy on 4 × 2 inch stock. Separate diagnostics check the built-in font commands, SDK query bytes, three mapped reply endpoints, byte trace and square-and-text label. An independent bench check also decompressed the actual Labelife QR job with liblzo2, compared every raster dot with the PNG, and decoded the QR from those bytes. liblzo2 is only needed to repeat that independent comparison.
 
 The included Xcode project references the package locally. With device support, a development identity and the matching profile already available, build the iPhone target using the shared scheme.
 

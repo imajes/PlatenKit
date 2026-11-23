@@ -35,7 +35,6 @@ final class RongtaDiagnosticsTests: XCTestCase {
         let tspl = try LabelJob.smoke(id: id, model: .rongta, stock: stock, language: .tspl)
         XCTAssertEqual(zpl.language, .zpl)
         XCTAssertEqual(zpl.bytes, Data("^XA^FO8,8^A0N,36,36^FDWL-TEXT-01^FS^PQ1^XZ".utf8))
-        XCTAssertEqual(try LabelJob.smoke(id: id, model: .rongta, stock: stock).bytes, zpl.bytes)
         XCTAssertEqual(tspl.language, .tspl)
         XCTAssertEqual(tspl.bytes, Data("CLS\r\nTEXT 8,8,\"1\",0,3,3,\"WL-TEXT-01\"\r\nPRINT 1,1\r\n".utf8))
         XCTAssertThrowsError(try LabelJob.smoke(id: "X\"\r\nPRINT 2", model: .rongta, stock: stock, language: .tspl))

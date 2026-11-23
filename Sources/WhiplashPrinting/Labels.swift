@@ -82,19 +82,20 @@ public struct LabelJob: Sendable {
         }
     }
 
-    /// Issue one ID-only label using the selected printer's encoding.
+    /// Render the ID as pixels on the measured stock and encode one copy for the selected printer.
     public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock) throws -> Self {
-        try smoke(id: id, model: model, stock: stock, language: model.defaultLanguage)
+        try validate(id)
+        let page = try LabelRenderer.textPage(id, stock: stock)
+        return try image(page, id: id, model: model, stock: stock)
     }
 
-    /// Build one text job in the requested language. The Rongta text formats use its current media settings.
+    /// Compare the Rongta's built-in text commands using its current media settings. The Labelife uses TSPL raster.
     public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock, language: PrinterLanguage) throws -> Self {
         try validate(id)
         switch (model, language) {
         case (.rongta, .zpl):
             let font = min(36, (stock.widthDots - 16) / id.utf8.count, stock.heightDots - 16)
             guard font >= 10 else { throw BenchError("Stock is too small for this test ID.") }
-            // Use the printer's current media calibration for the first physical test.
             let text = "^XA^FO8,8^A0N,\(font),\(font)^FD\(id)^FS^PQ1^XZ"
             return Self(id: id, model: model, stock: stock, bytes: Data(text.utf8), language: language)
         case (.rongta, .tspl):
@@ -104,8 +105,7 @@ public struct LabelJob: Sendable {
             let text = "CLS\r\nTEXT 8,8,\"1\",0,\(scale),\(scale),\"\(id)\"\r\nPRINT 1,1\r\n"
             return Self(id: id, model: model, stock: stock, bytes: Data(text.utf8), language: language)
         case (.labelife, .tspl):
-            let page = try LabelRenderer.textPage(id, stock: stock)
-            return try image(page, id: id, model: model, stock: stock)
+            return try smoke(id: id, model: model, stock: stock)
         case (.labelife, .zpl):
             throw BenchError("The Labelife adapter supports TSPL.")
         }

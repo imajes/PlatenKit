@@ -14,7 +14,7 @@ swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id WL-P
 print -r -- "$preview_dir/label.png"
 ```
 
-At 203 dpi the preview is 812 × 1,218 pixels. It contains `WL-PREVIEW` as text and QR, plus an asymmetric square for checking orientation. For a live Mac bench run, the package README gives the scan, inspect and single-print commands. [Print one Labelife label](README.md#print-one-labelife-label-from-the-mac)
+At 203 dpi the preview is 812 × 1,218 pixels. It contains `WL-PREVIEW` as text and QR, plus an asymmetric square for checking orientation. For a live Mac run, `printer-bench smoke` renders a fresh ID as a bitmap and requests one copy on the selected printer. [Print one Rongta label](README.md#rongta-bench) · [Print one Labelife label](README.md#print-one-labelife-label-from-the-mac)
 
 ## 2. Add the library to the iOS target
 
@@ -104,7 +104,7 @@ For the Labelife stock above, construct `try LabelStock(widthMM: 101.6, heightMM
 
 Open `BenchApp/PrinterBench.xcodeproj`, select the **PrinterBench** scheme and use an already provisioned iPhone with the appropriate development signing identity. Obtain James’s approval before installing on the phone, changing pairing or signing settings, or installing developer support. [Build the standalone harness](README.md#build-and-verify)
 
-Release the printer from any vendor app or other bench session before scanning. In the harness, choose the model, tap **Scan nearby**, select the unit, then **Connect and inspect**. If discovery fails, check Bluetooth permission for this app and repeat the scan with the unit awake. If profile selection is ambiguous, inspect the reported services before choosing an endpoint. Leave **Match printer profile** selected for the bench Labelife. Choose **Print artwork, text and QR** when ready to issue the acceptance label. **Print ID only** sends a separate physical label. [iPhone harness](BenchApp/App/PrinterBenchApp.swift)
+Release the printer from any vendor app or other bench session before scanning. In the harness, choose the model, tap **Scan nearby**, select the unit, then **Connect and inspect**. If discovery fails, check Bluetooth permission for this app and repeat the scan with the unit awake. Leave **Match printer profile** selected on these bench units. If selection is ambiguous, inspect the reported services before choosing an endpoint. Choose **Print artwork, text and QR** for each acceptance label. For a separate ID-only test, **Print ID only** calls the same `LabelJob.smoke` bitmap path used by the Mac CLI. [iPhone harness](BenchApp/App/PrinterBenchApp.swift)
 
 For each printer, request one label on the initial connection, one after reconnecting, and one after restarting the printer and relaunching the harness. Each request gets a fresh ID. Check exactly one label emerged from the selected unit, the text and artwork are legible, and scanning the paper QR returns that ID. Under **Paper check**, enter those observations, tap **Record observation**, then use **Share full journal** to export the result.
 
