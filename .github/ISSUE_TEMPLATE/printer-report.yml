@@ -1,0 +1,33 @@
+name: Printer report
+description: Share a working printer setup or a reproducible printing problem.
+body:
+  - type: textarea
+    id: setup
+    attributes:
+      label: Printer and host
+      description: Include the model, host OS, PlatenKit revision, transport and label size (width across the head × length along the feed). Add firmware, DPI and command language when known.
+      placeholder: Rongta RP421A, macOS …, PlatenKit …, Bluetooth LE, 101.6 × 50.8 mm, 203 dpi, ZPL
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and transport result
+      description: Give the command or Swift call, what you expected, and the last step that succeeded. Include discovery, connection, endpoint and acknowledged or queued writes where available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: paper
+    attributes:
+      label: What happened on paper?
+      description: Record the number of labels, readable text, artwork and scanned QR payload when applicable. If the job never reached a printer, say where it stopped.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Trace or label photo
+      description: A short bench journal, offline PNG or photo can help reproduce the result. Use a test payload and redact any addresses or identifiers you want to keep private.

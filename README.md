@@ -198,6 +198,10 @@ Select the model, tap **Scan nearby**, choose the unit, then **Connect and inspe
 
 For each printer, request one label on the initial connection, one after disconnecting and reconnecting, and one after restarting the printer and relaunching the app. Use a fresh ID each time. Each request must produce exactly one label on the selected unit, with the QR decoding to its run ID. Log host OS, app and firmware versions when known, stock, transport, command language, discovery, endpoint, write result, and physical observation.
 
+## Contributing
+
+Run the package tests locally and describe any printer trial in your pull request. The contributor guide includes the CI checks and the details that make hardware reports reproducible. [Contribution guide](CONTRIBUTING.md)
+
 ## License and artwork
 
 PlatenKit source code and documentation are available under the MIT License. The bundled Karla font is distributed under the SIL Open Font License 1.1. [MIT License](LICENSE) · [Karla copyright and license](Sources/PlatenKit/Resources/OFL.txt)
