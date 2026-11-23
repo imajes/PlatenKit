@@ -92,13 +92,17 @@ From the **Print** action, generate a fresh `LabelJob.newID()` and record it bef
 ```swift
 @MainActor
 func printTrial(using printer: BoxLabelPrinter, runID: String, stock: LabelStock,
-                artwork: CGImage? = nil, font: LabelFont? = nil) async throws -> Submission {
-    let page = try LabelRenderer.compose(artwork: artwork, text: runID, qrPayload: runID, stock: stock, font: font)
+                artwork: CGImage? = nil, font: LabelFont? = nil,
+                artworkMode: LabelImageMode = .lineArt) async throws -> Submission {
+    let page = try LabelRenderer.compose(artwork: artwork, text: runID, qrPayload: runID,
+                                         stock: stock, font: font, artworkMode: artworkMode)
     return try await printer.printOne(page: page, stock: stock, runID: runID)
 }
 ```
 
 For the Labelife stock above, construct `try LabelStock(widthMM: 101.6, heightMM: 152.4, dpi: 203)`. If the app already composes a complete label, pass its `CGImage` directly to `printOne`. Rasterize upstream SVG artwork to a `CGImage` before passing it to `compose` or `printOne`.
+
+For a photograph of a box or its contents, pass the photograph as `artwork` and set `artworkMode: .photo`. Whiplash dithers the photograph at its final printed size and draws the title and QR separately. Use the default `.lineArt` for logos and monochrome artwork. In the iPhone bench, choose the image and select **Artwork type → Photograph** to exercise the same code. [Offline preview and physical comparison](README.md#print-photographs)
 
 For an exact typeface, pass `try LabelFont(postScriptName: "Karla", weight: 275)` as the `font` argument. Swift Package Manager includes the upright Karla variable font with the library on both platforms. An installed or app-registered face can be selected by its full PostScript name, such as `Courier-Bold`. A font shipped in your app’s resources or imported from Files can also be loaded directly with `try LabelFont(data: Data(contentsOf: url))`. Add `weight:` when using a variable weight axis. This file-based path reads the font into memory for rendering. For ID-only jobs, pass the same font to `LabelJob.smoke(id:model:stock:font:)`. [Mac preview and bench commands](README.md#choose-the-label-font) · [Apple’s font file guidance](https://developer.apple.com/documentation/uikit/adding-a-custom-font-to-your-app)
 

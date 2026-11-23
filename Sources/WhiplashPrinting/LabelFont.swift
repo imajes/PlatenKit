@@ -8,6 +8,7 @@ public struct LabelFont: @unchecked Sendable {
     /// Physical typographic points, 72 per inch. A nil value lets the renderer fit the title to the stock.
     public let pointSize: Double?
     private let face: CTFont
+    static let bundledKarlaURL = Bundle.module.url(forResource: "Karla-Variable", withExtension: "ttf")
 
     /// Select an available face by PostScript name. "Karla" and "Karla-Regular" use the package's upright variable font.
     public init(postScriptName name: String, weight: Int? = nil) throws {
@@ -16,7 +17,7 @@ public struct LabelFont: @unchecked Sendable {
 
     public init(postScriptName name: String, weight: Int? = nil, pointSize: Double?) throws {
         if name == "Karla" || name == "Karla-Regular" {
-            guard let url = Bundle.module.url(forResource: "Karla-Variable", withExtension: "ttf") else {
+            guard let url = Self.bundledKarlaURL else {
                 throw BenchError("The Karla resource is missing from the WhiplashPrinting bundle.")
             }
             try self.init(data: Data(contentsOf: url), weight: weight, pointSize: pointSize)

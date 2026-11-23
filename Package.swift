@@ -20,6 +20,9 @@ let package = Package(
                 "-Xlinker", "-sectcreate", "-Xlinker", "__TEXT", "-Xlinker", "__info_plist", "-Xlinker", privacyPlist
             ], .when(platforms: [.macOS]))]
         ),
-        .testTarget(name: "WhiplashPrintingTests", dependencies: ["WhiplashPrinting"])
+        .testTarget(
+            name: "WhiplashPrintingTests", dependencies: ["WhiplashPrinting"],
+            resources: [.copy("Fixtures/moon-gray-284.png")]
+        )
     ]
 )

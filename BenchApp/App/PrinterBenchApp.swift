@@ -70,6 +70,12 @@ private struct BenchView: View {
                         }
                         Button("Choose font file") { fileType = .font; pickingFile = true }
                         Button(bench.artworkName.isEmpty ? "Choose artwork (optional)" : bench.artworkName) { fileType = .image; pickingFile = true }
+                        if !bench.artworkName.isEmpty {
+                            Picker("Artwork type", selection: $bench.artworkMode) {
+                                Text("Line art").tag(LabelImageMode.lineArt)
+                                Text("Photograph").tag(LabelImageMode.photo)
+                            }
+                        }
                         Button("Print ID only") { bench.printOne(rich: false) }
                         Button("Print artwork, text and QR") { bench.printOne(rich: true) }
                     }.disabled(bench.busy)

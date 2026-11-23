@@ -4,15 +4,21 @@ import CoreImage.CIFilterBuiltins
 import CoreText
 import Foundation
 
+/// Choose how grayscale artwork is converted to printable black and white dots.
+public enum LabelImageMode: String, Sendable {
+    case lineArt = "line-art"
+    case photo
+}
+
 public enum LabelRenderer {
-    private static func canvas(_ stock: LabelStock) throws -> CGContext {
-        guard let context = CGContext(data: nil, width: stock.widthDots, height: stock.heightDots,
-                                      bitsPerComponent: 8, bytesPerRow: stock.widthDots,
+    private static func canvas(width: Int, height: Int) throws -> CGContext {
+        guard let context = CGContext(data: nil, width: width, height: height,
+                                      bitsPerComponent: 8, bytesPerRow: width,
                                       space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue) else {
             throw BenchError("Could not allocate the label canvas.")
         }
         context.setFillColor(gray: 1, alpha: 1)
-        context.fill(CGRect(x: 0, y: 0, width: stock.widthDots, height: stock.heightDots))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         return context
     }
 
@@ -24,19 +30,50 @@ public enum LabelRenderer {
 
     /// Composite onto white and aspect-fit a caller's pre-rendered page to the measured stock.
     public static func bitmap(from image: CGImage, stock: LabelStock) throws -> LabelBitmap {
-        let context = try canvas(stock)
-        let page = CGRect(x: 0, y: 0, width: stock.widthDots, height: stock.heightDots)
-        context.interpolationQuality = .none
+        try bitmap(from: image, stock: stock, mode: .lineArt)
+    }
+
+    /// Photo mode resamples at the final print size and represents gray with Floyd–Steinberg error diffusion.
+    public static func bitmap(from image: CGImage, stock: LabelStock, mode: LabelImageMode) throws -> LabelBitmap {
+        try bitmap(from: image, width: stock.widthDots, height: stock.heightDots, mode: mode)
+    }
+
+    private static func bitmap(from image: CGImage, width: Int, height: Int, mode: LabelImageMode) throws -> LabelBitmap {
+        let context = try canvas(width: width, height: height)
+        let page = CGRect(x: 0, y: 0, width: width, height: height)
+        context.interpolationQuality = mode == .photo ? .high : .none
         context.draw(image, in: fit(image, in: page))
         guard let bytes = context.data?.assumingMemoryBound(to: UInt8.self) else {
             throw BenchError("Could not read the label pixels.")
         }
-        let pixels = Array(UnsafeBufferPointer(start: bytes, count: stock.widthDots * stock.heightDots))
-        return try LabelBitmap(width: stock.widthDots, height: stock.heightDots, grayscale: pixels)
+        var pixels = Array(UnsafeBufferPointer(start: bytes, count: width * height))
+        if mode == .photo { ditherPhoto(&pixels, width: width, height: height) }
+        return try LabelBitmap(width: width, height: height, grayscale: pixels)
+    }
+
+    private static func ditherPhoto(_ pixels: inout [UInt8], width: Int, height: Int) {
+        // The guard columns discard errors that would otherwise wrap around the page.
+        var current = [Int](repeating: 0, count: width + 2)
+        var next = current
+        for y in 0..<height {
+            for x in 0..<width {
+                let index = y * width + x
+                let gray = min(255, max(0, Int(pixels[index]) + current[x + 1] / 16))
+                let result = gray > 128 ? 255 : 0
+                pixels[index] = UInt8(result)
+                let error = gray - result
+                current[x + 2] += 7 * error
+                next[x] += 3 * error
+                next[x + 1] += 5 * error
+                next[x + 2] += error
+            }
+            swap(&current, &next)
+            for index in next.indices { next[index] = 0 }
+        }
     }
 
     static func textPage(_ text: String, stock: LabelStock, font: LabelFont? = nil) throws -> CGImage {
-        let context = try canvas(stock)
+        let context = try canvas(width: stock.widthDots, height: stock.heightDots)
         _ = try drawTitle(text, on: context, font: font, dpi: stock.dpi)
         guard let image = context.makeImage() else { throw BenchError("Could not finish the text label.") }
         return image
@@ -89,8 +126,13 @@ public enum LabelRenderer {
     }
 
     public static func compose(artwork: CGImage? = nil, text: String, qrPayload: String, stock: LabelStock, font: LabelFont?) throws -> CGImage {
+        try compose(artwork: artwork, text: text, qrPayload: qrPayload, stock: stock, font: font, artworkMode: .lineArt)
+    }
+
+    /// Apply the image treatment only inside the supplied artwork.
+    public static func compose(artwork: CGImage?, text: String, qrPayload: String, stock: LabelStock, font: LabelFont? = nil, artworkMode: LabelImageMode) throws -> CGImage {
         guard !text.isEmpty, !qrPayload.isEmpty else { throw BenchError("Supply text and a QR payload.") }
-        let context = try canvas(stock)
+        let context = try canvas(width: stock.widthDots, height: stock.heightDots)
         let w = CGFloat(stock.widthDots), h = CGFloat(stock.heightDots)
         let (margin, reservedHeight) = try drawTitle(text, on: context, font: font, dpi: stock.dpi)
         let generator = CIFilter.qrCodeGenerator()
@@ -113,7 +155,14 @@ public enum LabelRenderer {
         let left = qrBox.maxX + quiet + margin
         let art = CGRect(x: left, y: margin, width: w - margin - left, height: bodyHeight)
         if let artwork {
-            context.draw(artwork, in: fit(artwork, in: art))
+            let target = fit(artwork, in: art)
+            if artworkMode == .photo {
+                let box = target.integral
+                let dots = try bitmap(from: artwork, width: Int(box.width), height: Int(box.height), mode: .photo)
+                context.draw(try dots.makeImage(), in: box)
+            } else {
+                context.draw(artwork, in: target)
+            }
         } else {
             let ink = CGColor(gray: 0, alpha: 1)
             let s = min(art.width, art.height) * 0.72

@@ -130,7 +130,11 @@ public struct LabelJob: Sendable {
     }
 
     public static func image(_ image: CGImage, id: String = newID(), model: PrinterModel, stock: LabelStock) throws -> Self {
-        try raster(LabelRenderer.bitmap(from: image, stock: stock), id: id, model: model, stock: stock)
+        try self.image(image, id: id, model: model, stock: stock, mode: .lineArt)
+    }
+
+    public static func image(_ image: CGImage, id: String = newID(), model: PrinterModel, stock: LabelStock, mode: LabelImageMode) throws -> Self {
+        try raster(LabelRenderer.bitmap(from: image, stock: stock, mode: mode), id: id, model: model, stock: stock)
     }
 
     /// A font-independent black square and a separate ID, centered on the measured stock.

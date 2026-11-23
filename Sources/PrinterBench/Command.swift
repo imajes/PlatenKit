@@ -11,6 +11,7 @@ printer-bench rongta-mark --device UUID --width-mm W --height-mm H [--run-id ID]
 printer-bench smoke|test-label|image --device UUID --model rongta|labelife --width-mm W --height-mm H
     [--endpoint SERVICE/CHARACTERISTIC] [--mode acknowledged|queued] [--seconds 5] [--dpi 203] [--run-id ID]
     image requires --file PATH; test-label accepts --artwork PATH
+    image and supplied artwork accept --image-mode line-art|photo. Photo dithers the picture at its print size.
     smoke renders an ID as a bitmap. On the Rongta, --language zpl|tspl selects a native-text diagnostic.
 printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203] [--monochrome]
     preview, test-label and raster smoke accept --font POSTSCRIPT-NAME or --font-file PATH, plus optional --font-weight INTEGER and --font-size-pt POINTS.
@@ -33,8 +34,8 @@ private struct Options {
             "scan": ["--match", "--seconds"], "inspect": ["--device", "--seconds"],
             "rongta-status": ["--device", "--seconds", "--endpoint", "--mode"],
             "rongta-mark": printOptions.filter { $0 != "--model" },
-            "smoke": printOptions + fontOptions + ["--language"], "test-label": printOptions + fontOptions + ["--artwork"], "image": printOptions + ["--file"],
-            "preview": ["--width-mm", "--height-mm", "--dpi", "--output", "--artwork", "--run-id", "--monochrome"] + fontOptions,
+            "smoke": printOptions + fontOptions + ["--language"], "test-label": printOptions + fontOptions + ["--artwork", "--image-mode"], "image": printOptions + ["--file", "--image-mode"],
+            "preview": ["--width-mm", "--height-mm", "--dpi", "--output", "--artwork", "--image-mode", "--run-id", "--monochrome"] + fontOptions,
             "help": [], "--help": [], "-h": []
         ]
         guard let flags = allowed[command] else { throw BenchError("Unknown command \(command).\n\(usage)") }
@@ -135,8 +136,14 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
         if ["help", "-h", "--help"].contains(command) { writeLine(usage); return }
         let id = values["--run-id"] ?? LabelJob.newID()
         let font = try options.font()
+        guard let imageMode = LabelImageMode(rawValue: values["--image-mode"] ?? "line-art") else {
+            throw BenchError("Use line-art or photo for --image-mode.")
+        }
+        if values["--image-mode"] != nil && command != "image" && values["--artwork"] == nil {
+            throw BenchError("Supply --artwork when selecting its image mode.")
+        }
         func fixture(_ stock: LabelStock) throws -> CGImage {
-            try LabelRenderer.compose(artwork: values["--artwork"].map(loadImage), text: id, qrPayload: id, stock: stock, font: font)
+            try LabelRenderer.compose(artwork: values["--artwork"].map(loadImage), text: id, qrPayload: id, stock: stock, font: font, artworkMode: imageMode)
         }
         if command == "preview" {
             let stock = try options.stock()
@@ -185,12 +192,13 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
                 } else {
                     label = try .smoke(id: id, model: model, stock: stock, font: font)
                 }
-            case "image": label = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock)
+            case "image": label = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock, mode: imageMode)
             default: label = try .image(fixture(stock), id: id, model: model, stock: stock)
             }
             job = label
             writeLine("Requested \(command) · \(id) · \(model.name) · \(label.language.rawValue) · \(stock.description) · paper unobserved")
             if let font { writeLine("Font \(font.description)") }
+            if command == "image" || values["--artwork"] != nil { writeLine("Image mode \(imageMode.rawValue)") }
         }
         let devices = try await radio.scan(seconds: seconds)
         guard let device = devices.first(where: { $0.id == target }) else { throw BenchError("Selected peripheral did not appear in the current scan.") }

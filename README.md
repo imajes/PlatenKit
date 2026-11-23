@@ -1,6 +1,6 @@
 # WhiplashPrinting
 
-A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. From the Mac, the Rongta RP421A printed a ZPL bitmap with a run ID on 4 × 2 inch stock. The Labelife AM-243-BT printed a QR label and an ID-only label on 4 × 6 inch stock. Physical trials from the Whiplash iPhone app are the next milestone.
+A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Mac printed the same photographic design on the Rongta RP421A (4 × 2 inches, ZPL) and the Labelife AM-243-BT (4 × 6 inches, TSPL). Both also printed readable bitmap text, and the Labelife produced a scannable QR. Physical trials from the Whiplash iPhone app are the next milestone. [Paper photograph and Bluetooth traces](BenchRuns/2026-11-23-moon-0132Z/README.md)
 
 To use the library directly in a native Swift app, follow the [iPhone integration quickstart](QUICKSTART.md). It covers an offline preview, adding the local package in Xcode, owning a printer session in SwiftUI, and verifying the result on paper.
 
@@ -54,6 +54,23 @@ For each weight, the ZPL graphic and the decompressed TSPL bitmap were checked o
 
 To give fine lettering more printer dots, specify a physical size with `--font-size-pt 24` or the iPhone bench’s **Size (pt)** field. The renderer converts points to dots using the stock’s DPI and reports a fit error if the text exceeds the page. On the 4 × 2 inch roll, Karla 275’s automatically fitted title uses about 18.7 pt and occupies 37 rows of ink. At 24 pt the same title spans 48 rows. The QR and artwork in these examples match pixel for pixel. In an offline comparison at the smaller size, snapping the glyphs to whole-dot positions reproduced the existing pixels, and error diffusion added visible stippling to the letter edges. [Title and edge comparison](Examples/Fonts/Karla-print-sizes.png) · [24 pt at 275](Examples/Fonts/Karla-275-24pt.png) · [24 pt at 300](Examples/Fonts/Karla-300-24pt.png)
 
+## Print photographs
+
+Use `--image-mode photo` for photographs. The renderer fits the picture to its final size at the stock’s DPI and uses Floyd–Steinberg dithering to represent intermediate tones with patterns of black dots. On the Moon comparison, James preferred the dithered half on both printers. The Swift renderer reproduced every dot in the 284 × 284 picture used for each physical print. [Side-by-side paper results](BenchRuns/2026-11-23-moon-0132Z/README.md) · [Grayscale Moon used by the regression test](Tests/WhiplashPrintingTests/Fixtures/moon-gray-284.png)
+
+To preview a photograph alongside a Karla title and a QR code, run this from the package directory and choose a new output filename. The preview is an 812 × 406 pixel image of the actual print dots and works with the printers off.
+
+```zsh
+swift run printer-bench preview --width-mm 101.6 --height-mm 50.8 --run-id Box-014-Kitchen \
+  --font Karla --font-weight 275 --font-size-pt 24 \
+  --artwork Tests/WhiplashPrintingTests/Fixtures/moon-gray-284.png --image-mode photo \
+  --monochrome --output moon-preview.png
+```
+
+On a composed label, `preview` and `test-label` apply the mode only to the supplied artwork. The Swift equivalent is `LabelRenderer.compose(artwork:text:qrPayload:stock:font:artworkMode:)` with `artworkMode: .photo`. In the iPhone bench, choose the artwork file and select **Photograph** under **Artwork type**. The title keeps its chosen font and the QR keeps its solid modules. The default `.lineArt` suits logos, codes and pages that are already prepared as black and white dots.
+
+For a standalone photograph without a title or QR, pass `--file path.jpg --image-mode photo` to the Mac’s `image` command or use `LabelJob.image(picture, id: runID, model: model, stock: stock, mode: .photo)` in Swift. A precomposed one-bit label such as either archived Moon comparison can go directly through `image` with its default settings.
+
 ## Physical evidence
 
 The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) using Core Bluetooth. The bench generated jobs at 203 dpi. Each Bluetooth print started from a fresh scan of the selected printer. The Labelife roll was 4 × 6 inches. The Rongta roll was 4 inches wide by 2 inches high (101.6 × 50.8 mm).
@@ -73,6 +90,8 @@ On November 22, the Rongta printed its built-in self-test with the correct power
 James then confirmed a physical iPhone print from **RT Elabel**, the app Rongta lists for the RP421A. He selected ZPL in the app. Its published version history also documents a TSPL default for the RP421 profile. On the 4 × 2 inch roll the Mac subsequently sent one native text ID per language through `18F0/2AF1`. [RT Elabel evidence and both text traces](BenchRuns/2026-11-23-rongta-0025Z/README.md) · [Publisher’s version history](https://apps.apple.com/us/app/rt-elabel/id6714471637)
 
 On the watched repeats, native ZPL text advanced one blank label and native TSPL text produced no movement. The next job used the same endpoint and stock, rendered `WL-G9-0035` as a ZPL bitmap and explicitly set the 812 × 406 dot page dimensions and origin. All 82,882 bytes were acknowledged in 162 writes. James confirmed the first physical Rongta print from the Swift bench. [Source PNG, trace and reproduction command](BenchRuns/2026-11-23-rongta-0036Z/README.md)
+
+Later that evening, the Labelife printed one `WL-LIMG-013140` and the Rongta printed one `WL-RIMG-013140`. Both used the same 35.5 mm Moon pictures. James photographed the two results together and preferred the dithered picture on each. [Paper photograph, exact input pages and write receipts](BenchRuns/2026-11-23-moon-0132Z/README.md)
 
 ### Labelife wire format
 

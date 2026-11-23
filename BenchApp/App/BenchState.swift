@@ -15,6 +15,7 @@ import WhiplashPrinting
     @Published var mode = ""
     @Published var trial = "Initial connection"
     @Published var artworkName = ""
+    @Published var artworkMode = LabelImageMode.lineArt
     @Published var fontName = ""
     @Published var fontWeight = ""
     @Published var fontSize = ""
@@ -163,7 +164,7 @@ import WhiplashPrinting
             let font = try self.selectedFont()
             let job: LabelJob
             if rich {
-                let page = try LabelRenderer.compose(artwork: self.artwork, text: id, qrPayload: id, stock: stock, font: font)
+                let page = try LabelRenderer.compose(artwork: self.artwork, text: id, qrPayload: id, stock: stock, font: font, artworkMode: self.artworkMode)
                 job = try .image(page, id: id, model: self.model, stock: stock)
             } else {
                 job = try .smoke(id: id, model: self.model, stock: stock, font: font)
@@ -172,6 +173,7 @@ import WhiplashPrinting
             UserDefaults.standard.set(id, forKey: "lastPrintRun")
             self.record("\(self.trial) · \(rich ? "artwork, text, QR" : "ID only") · \(id) · paper unobserved")
             if let font { self.record("Font \(font.description)") }
+            if rich && self.artwork != nil { self.record("Image mode \(self.artworkMode.rawValue)") }
             _ = try await self.radio.submit(job, to: endpoint, mode: WriteMode(rawValue: self.mode))
         }
     }

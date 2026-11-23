@@ -8,7 +8,7 @@ final class LabelFontTests: XCTestCase {
     private func stock() throws -> LabelStock { try LabelStock(widthMM: 101.6, heightMM: 50.8, dpi: 203) }
 
     func testKarlaUsesTheExactRequestedWeightAfterResizing() throws {
-        let url = try XCTUnwrap(Bundle.module.url(forResource: "Karla-Variable", withExtension: "ttf"))
+        let url = try XCTUnwrap(LabelFont.bundledKarlaURL)
         let data = try Data(contentsOf: url)
         let stock = try stock()
         for weight in [200, 275, 300, 800] {
