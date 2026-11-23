@@ -65,6 +65,9 @@ private struct BenchView: View {
                         LabeledContent("Variable weight") {
                             TextField("Font default", text: $bench.fontWeight).keyboardType(.numberPad).multilineTextAlignment(.trailing)
                         }
+                        LabeledContent("Size (pt)") {
+                            TextField("Auto fit", text: $bench.fontSize).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
+                        }
                         Button("Choose font file") { fileType = .font; pickingFile = true }
                         Button(bench.artworkName.isEmpty ? "Choose artwork (optional)" : bench.artworkName) { fileType = .image; pickingFile = true }
                         Button("Print ID only") { bench.printOne(rich: false) }

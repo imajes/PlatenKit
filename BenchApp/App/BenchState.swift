@@ -17,6 +17,7 @@ import WhiplashPrinting
     @Published var artworkName = ""
     @Published var fontName = ""
     @Published var fontWeight = ""
+    @Published var fontSize = ""
     @Published private(set) var fontFilename = ""
     @Published var busy = false
     @Published var journal = ""
@@ -140,11 +141,14 @@ import WhiplashPrinting
         let weightText = fontWeight.trimmingCharacters(in: .whitespacesAndNewlines)
         let weight = Int(weightText)
         guard weightText.isEmpty || weight != nil else { throw BenchError("Enter a whole-number weight.") }
-        if let fontData { return try LabelFont(data: fontData, weight: weight) }
+        let sizeText = fontSize.trimmingCharacters(in: .whitespacesAndNewlines)
+        let points = Double(sizeText)
+        guard sizeText.isEmpty || points != nil else { throw BenchError("Enter a numeric font size in points.") }
+        if let fontData { return try LabelFont(data: fontData, weight: weight, pointSize: points) }
         let name = fontName.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !name.isEmpty { return try LabelFont(postScriptName: name, weight: weight) }
+        if !name.isEmpty { return try LabelFont(postScriptName: name, weight: weight, pointSize: points) }
         guard weight == nil else { throw BenchError("Enter a font name or choose a font file for this weight.") }
-        return nil
+        return try points.map { try LabelFont(postScriptName: "Helvetica-Bold", pointSize: $0) }
     }
 
     func printOne(rich: Bool) {

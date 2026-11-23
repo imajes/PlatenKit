@@ -13,7 +13,7 @@ printer-bench smoke|test-label|image --device UUID --model rongta|labelife --wid
     image requires --file PATH; test-label accepts --artwork PATH
     smoke renders an ID as a bitmap. On the Rongta, --language zpl|tspl selects a native-text diagnostic.
 printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203] [--monochrome]
-    preview, test-label and raster smoke accept --font POSTSCRIPT-NAME or --font-file PATH, plus optional --font-weight INTEGER.
+    preview, test-label and raster smoke accept --font POSTSCRIPT-NAME or --font-file PATH, plus optional --font-weight INTEGER and --font-size-pt POINTS.
     Karla is bundled. Use --font Karla --font-weight 275 for its upright variable face.
 
 Width is across the print head. Height is the feed length.
@@ -28,7 +28,7 @@ private struct Options {
     init(_ args: [String]) throws {
         command = args.first ?? "help"
         let printOptions = ["--device", "--seconds", "--model", "--width-mm", "--height-mm", "--dpi", "--endpoint", "--mode", "--run-id"]
-        let fontOptions = ["--font", "--font-file", "--font-weight"]
+        let fontOptions = ["--font", "--font-file", "--font-weight", "--font-size-pt"]
         let allowed: [String: [String]] = [
             "scan": ["--match", "--seconds"], "inspect": ["--device", "--seconds"],
             "rongta-status": ["--device", "--seconds", "--endpoint", "--mode"],
@@ -69,17 +69,21 @@ private struct Options {
     }
 
     func font() throws -> LabelFont? {
+        let pointSize = try values["--font-size-pt"].map { raw in
+            guard let points = Double(raw) else { throw BenchError("Use a numeric size in points for --font-size-pt.") }
+            return points
+        }
         let weight = try values["--font-weight"].map { raw in
             guard let value = Int(raw) else { throw BenchError("Use an integer for --font-weight.") }
             return value
         }
         switch (values["--font"], values["--font-file"]) {
-        case let (name?, nil): return try LabelFont(postScriptName: name, weight: weight)
-        case let (nil, path?): return try LabelFont(data: Data(contentsOf: URL(fileURLWithPath: path)), weight: weight)
+        case let (name?, nil): return try LabelFont(postScriptName: name, weight: weight, pointSize: pointSize)
+        case let (nil, path?): return try LabelFont(data: Data(contentsOf: URL(fileURLWithPath: path)), weight: weight, pointSize: pointSize)
         case (.some, .some): throw BenchError("Choose one font source with --font or --font-file.")
         case (nil, nil):
             guard weight == nil else { throw BenchError("Choose --font or --font-file when specifying a weight.") }
-            return nil
+            return try pointSize.map { try LabelFont(postScriptName: "Helvetica-Bold", pointSize: $0) }
         }
     }
 }

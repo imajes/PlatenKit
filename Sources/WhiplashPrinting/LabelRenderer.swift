@@ -37,12 +37,12 @@ public enum LabelRenderer {
 
     static func textPage(_ text: String, stock: LabelStock, font: LabelFont? = nil) throws -> CGImage {
         let context = try canvas(stock)
-        _ = try drawTitle(text, on: context, font: font)
+        _ = try drawTitle(text, on: context, font: font, dpi: stock.dpi)
         guard let image = context.makeImage() else { throw BenchError("Could not finish the text label.") }
         return image
     }
 
-    private static func drawTitle(_ text: String, on context: CGContext, font: LabelFont?) throws -> (margin: CGFloat, font: CGFloat) {
+    private static func drawTitle(_ text: String, on context: CGContext, font: LabelFont?, dpi: Int) throws -> (margin: CGFloat, reservedHeight: CGFloat) {
         let w = CGFloat(context.width), h = CGFloat(context.height)
         let margin = max(4, (min(w, h) * 0.045).rounded())
         let ink = CGColor(gray: 0, alpha: 1)
@@ -58,14 +58,29 @@ public enum LabelRenderer {
             return CTLineCreateWithAttributedString(NSAttributedString(string: text, attributes: attributes))
         }
         let naturalWidth = CTLineGetTypographicBounds(line(using: typeface(fontSize)), nil, nil, nil)
-        let fittedFont = min(fontSize, fontSize * (w - 2 * margin) / max(1, naturalWidth))
-        guard fittedFont >= 8 else { throw BenchError("Text is too long for the loaded stock.") }
-        context.textPosition = CGPoint(x: margin, y: h - margin - fittedFont)
-        let face = typeface(fittedFont)
+        let autoSize = min(fontSize, fontSize * (w - 2 * margin) / max(1, naturalWidth))
+        let size = font?.pointSize.map { CGFloat($0) * CGFloat(dpi) / 72 } ?? autoSize
+        let fitError = BenchError("The requested font size does not fit this label. Use a smaller size or shorter text.")
+        guard size.isFinite, size >= 1, size <= h - 2 * margin else { throw fitError }
+        if font?.pointSize == nil && autoSize < 8 { throw BenchError("Text is too long for the loaded stock.") }
+        let face = typeface(size)
         let fittedLine = line(using: face)
         try font?.checkGlyphs(in: fittedLine, using: face)
+        var origin = CGPoint(x: margin, y: h - margin - size)
+        var reservedHeight = autoSize
+        if font?.pointSize != nil {
+            let ink = CTLineGetBoundsWithOptions(fittedLine, [.useGlyphPathBounds])
+            if !ink.isNull {
+                origin.x += max(0, -ink.minX)
+                origin.y -= max(0, ink.maxY - size)
+                guard origin.x + ink.maxX <= w - margin, origin.y + ink.minY >= margin else { throw fitError }
+                // Use the spare space above the artwork before moving the artwork or reducing the QR.
+                reservedHeight = max(autoSize, h - (origin.y + ink.minY) - 2 * margin)
+            }
+        }
+        context.textPosition = origin
         CTLineDraw(fittedLine, context)
-        return (margin, fittedFont)
+        return (margin, reservedHeight)
     }
 
     /// Compose one page for either printer. The built-in asymmetric mark makes orientation visible.
@@ -77,7 +92,7 @@ public enum LabelRenderer {
         guard !text.isEmpty, !qrPayload.isEmpty else { throw BenchError("Supply text and a QR payload.") }
         let context = try canvas(stock)
         let w = CGFloat(stock.widthDots), h = CGFloat(stock.heightDots)
-        let (margin, fittedFont) = try drawTitle(text, on: context, font: font)
+        let (margin, reservedHeight) = try drawTitle(text, on: context, font: font, dpi: stock.dpi)
         let generator = CIFilter.qrCodeGenerator()
         generator.message = Data(qrPayload.utf8)
         generator.correctionLevel = "M"
@@ -85,7 +100,7 @@ public enum LabelRenderer {
               let qrImage = qr.cgImage ?? CIContext(options: [.useSoftwareRenderer: true]).createCGImage(qr, from: qr.extent) else {
             throw BenchError("Could not encode this QR payload.")
         }
-        let bodyHeight = h - 3 * margin - fittedFont
+        let bodyHeight = h - 3 * margin - reservedHeight
         let side = min((w - 3 * margin) * 0.62, bodyHeight)
         let scale = floor(side / CGFloat(qrImage.width + 8))
         guard scale >= 1 else { throw BenchError("The loaded stock is too small for this QR code.") }

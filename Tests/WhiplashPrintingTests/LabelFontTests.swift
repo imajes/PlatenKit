@@ -60,6 +60,47 @@ final class LabelFontTests: XCTestCase {
         XCTAssertNotEqual(original.bytes, try LabelJob.smoke(id: id, model: .rongta, stock: stock, font: courier).bytes)
     }
 
+    func testPhysicalTitleSizeScalesWithResolutionAndUsesTheAvailableSpace() throws {
+        let id = "Box-014-Kitchen"
+        let stock = try stock()
+        let automatic = try LabelFont(postScriptName: "Karla", weight: 275)
+        let larger = try LabelFont(postScriptName: "Karla", weight: 275, pointSize: 24)
+        func titleHeight(on media: LabelStock, font: LabelFont) throws -> Int {
+            let image = try LabelRenderer.textPage(id, stock: media, font: font)
+            let page = try LabelRenderer.bitmap(from: image, stock: media)
+            let inkRows = (0..<page.height).filter { row in
+                let start = row * page.bytesPerRow
+                return page.bytes[start..<(start + page.bytesPerRow)].contains { $0 != 0 }
+            }
+            return try XCTUnwrap(inkRows.last) - XCTUnwrap(inkRows.first) + 1
+        }
+        let height = try titleHeight(on: stock, font: larger)
+        XCTAssertGreaterThan(height, try titleHeight(on: stock, font: automatic))
+        let doubled = try LabelStock(widthMM: 101.6, heightMM: 50.8, dpi: 406)
+        XCTAssertEqual(Double(try titleHeight(on: doubled, font: larger)), 2 * Double(height), accuracy: 2)
+
+        func fullPage(_ font: LabelFont) throws -> LabelBitmap {
+            let image = try LabelRenderer.compose(text: id, qrPayload: id, stock: stock, font: font)
+            return try LabelRenderer.bitmap(from: image, stock: stock)
+        }
+        let original = try fullPage(automatic), updated = try fullPage(larger)
+        let startOfArtwork = 100 * original.bytesPerRow
+        XCTAssertNotEqual(original.bytes.prefix(startOfArtwork), updated.bytes.prefix(startOfArtwork))
+        XCTAssertEqual(original.bytes.dropFirst(startOfArtwork), updated.bytes.dropFirst(startOfArtwork))
+    }
+
+    func testExplicitPointSizeMustFitWithoutSilentShrinking() throws {
+        let stock = try stock()
+        for size in [0, -1, Double.infinity, Double.nan] {
+            XCTAssertThrowsError(try LabelFont(postScriptName: "Karla", pointSize: size))
+        }
+        let font = try LabelFont(postScriptName: "Karla", weight: 275, pointSize: 36)
+        let tooWide = String(repeating: "W", count: 32)
+        XCTAssertThrowsError(try LabelJob.smoke(id: tooWide, model: .rongta, stock: stock, font: font))
+        let tooTall = try LabelFont(postScriptName: "Karla", pointSize: 200)
+        XCTAssertThrowsError(try LabelRenderer.compose(text: "Box", qrPayload: "1", stock: stock, font: tooTall))
+    }
+
     func testUnusableFontAndUnsupportedGlyphsFailBeforeJobCreation() throws {
         XCTAssertThrowsError(try LabelFont(postScriptName: "Whiplash-Missing-Face"))
         XCTAssertThrowsError(try LabelFont(data: Data([0, 1, 2])))

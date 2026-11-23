@@ -102,6 +102,8 @@ For the Labelife stock above, construct `try LabelStock(widthMM: 101.6, heightMM
 
 For an exact typeface, pass `try LabelFont(postScriptName: "Karla", weight: 275)` as the `font` argument. Swift Package Manager includes the upright Karla variable font with the library on both platforms. An installed or app-registered face can be selected by its full PostScript name, such as `Courier-Bold`. A font shipped in your app’s resources or imported from Files can also be loaded directly with `try LabelFont(data: Data(contentsOf: url))`. Add `weight:` when using a variable weight axis. This file-based path reads the font into memory for rendering. For ID-only jobs, pass the same font to `LabelJob.smoke(id:model:stock:font:)`. [Mac preview and bench commands](README.md#choose-the-label-font) · [Apple’s font file guidance](https://developer.apple.com/documentation/uikit/adding-a-custom-font-to-your-app)
 
+To set a physical title size, use `try LabelFont(postScriptName: "Karla", weight: 275, pointSize: 24)`. The size is in typographic points (72 per inch). The same choice works with a font loaded from data. The default fits the title automatically. With an explicit size, a title that does not fit raises an error before submission. [203 dpi size comparison](Examples/Fonts/Karla-print-sizes.png)
+
 ## 4. Verify paper on a real iPhone
 
 Open `BenchApp/PrinterBench.xcodeproj`, select the **PrinterBench** scheme and use an already provisioned iPhone with the appropriate development signing identity. Obtain James’s approval before installing on the phone, changing pairing or signing settings, or installing developer support. [Build the standalone harness](README.md#build-and-verify)

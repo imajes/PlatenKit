@@ -5,33 +5,45 @@ import Foundation
 public struct LabelFont: @unchecked Sendable {
     public let postScriptName: String
     public let weight: Int?
+    /// Physical typographic points, 72 per inch. A nil value lets the renderer fit the title to the stock.
+    public let pointSize: Double?
     private let face: CTFont
 
     /// Select an available face by PostScript name. "Karla" and "Karla-Regular" use the package's upright variable font.
     public init(postScriptName name: String, weight: Int? = nil) throws {
+        try self.init(postScriptName: name, weight: weight, pointSize: nil)
+    }
+
+    public init(postScriptName name: String, weight: Int? = nil, pointSize: Double?) throws {
         if name == "Karla" || name == "Karla-Regular" {
             guard let url = Bundle.module.url(forResource: "Karla-Variable", withExtension: "ttf") else {
                 throw BenchError("The Karla resource is missing from the WhiplashPrinting bundle.")
             }
-            try self.init(data: Data(contentsOf: url), weight: weight)
+            try self.init(data: Data(contentsOf: url), weight: weight, pointSize: pointSize)
             return
         }
         let base = CTFontCreateWithNameAndOptions(name as CFString, 12, nil, [.preventAutoActivation, .preventAutoDownload])
         guard !name.isEmpty, CTFontCopyPostScriptName(base) as String == name else {
             throw BenchError("Font ‘\(name)’ is unavailable. Use its exact PostScript name or supply a font file.")
         }
-        try self.init(base: base, weight: weight)
+        try self.init(base: base, weight: weight, pointSize: pointSize)
     }
 
     /// Use a standalone TrueType or OpenType font directly from its bytes. Its default face is used unless a weight is specified.
     public init(data: Data, weight: Int? = nil) throws {
+        try self.init(data: data, weight: weight, pointSize: nil)
+    }
+
+    public init(data: Data, weight: Int? = nil, pointSize: Double?) throws {
         guard !data.starts(with: "ttcf".utf8), let descriptor = CTFontManagerCreateFontDescriptorFromData(data as CFData) else {
             throw BenchError("Supply a standalone .ttf or .otf font file.")
         }
-        try self.init(base: CTFontCreateWithFontDescriptor(descriptor, 12, nil), weight: weight)
+        try self.init(base: CTFontCreateWithFontDescriptor(descriptor, 12, nil), weight: weight, pointSize: pointSize)
     }
 
-    private init(base: CTFont, weight: Int?) throws {
+    private init(base: CTFont, weight: Int?, pointSize: Double?) throws {
+        if let pointSize, !pointSize.isFinite || pointSize <= 0 { throw BenchError("Use a positive, finite font size in points.") }
+        self.pointSize = pointSize
         postScriptName = CTFontCopyPostScriptName(base) as String
         self.weight = weight
         guard let weight else { face = base; return }
@@ -52,7 +64,9 @@ public struct LabelFont: @unchecked Sendable {
         guard applied.doubleValue == Double(weight) else { throw BenchError("Core Text could not apply weight \(weight) to ‘\(postScriptName)’.") }
     }
 
-    public var description: String { weight.map { "\(postScriptName) · weight \($0)" } ?? postScriptName }
+    public var description: String {
+        postScriptName + (weight.map { " · weight \($0)" } ?? "") + (pointSize.map { " · \($0.formatted()) pt" } ?? "")
+    }
 
     func sized(_ size: CGFloat) -> CTFont { CTFontCreateCopyWithAttributes(face, size, nil, nil) }
 

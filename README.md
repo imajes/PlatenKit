@@ -52,6 +52,8 @@ Both example labels contain `Box-014-Kitchen` at the same size, with the same ar
 
 For each weight, the ZPL graphic and the decompressed TSPL bitmap were checked offline against all 812 × 406 dots in the corresponding PNG. Each PNG’s QR decoded to `Box-014-Kitchen`. The examples use 4 × 2 inch stock for both encoders to keep the comparison at one physical size. To regenerate the 300 sample, change the preview command above to `--font-weight 300 --output karla-300.png`.
 
+To give fine lettering more printer dots, specify a physical size with `--font-size-pt 24` or the iPhone bench’s **Size (pt)** field. The renderer converts points to dots using the stock’s DPI and reports a fit error if the text exceeds the page. On the 4 × 2 inch roll, Karla 275’s automatically fitted title uses about 18.7 pt and occupies 37 rows of ink. At 24 pt the same title spans 48 rows. The QR and artwork in these examples match pixel for pixel. In an offline comparison at the smaller size, snapping the glyphs to whole-dot positions reproduced the existing pixels, and error diffusion added visible stippling to the letter edges. [Title and edge comparison](Examples/Fonts/Karla-print-sizes.png) · [24 pt at 275](Examples/Fonts/Karla-275-24pt.png) · [24 pt at 300](Examples/Fonts/Karla-300-24pt.png)
+
 ## Physical evidence
 
 The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) using Core Bluetooth. The bench generated jobs at 203 dpi. Each Bluetooth print started from a fresh scan of the selected printer. The Labelife roll was 4 × 6 inches. The Rongta roll was 4 inches wide by 2 inches high (101.6 × 50.8 mm).
