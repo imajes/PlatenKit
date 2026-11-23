@@ -146,7 +146,7 @@ public struct NearbyPrinter: Identifiable, Sendable {
         if job.model == .labelife && endpoint.id == "FF00/FF02" && inventory.contains(where: { $0.0.id == "FF00/FF03" && $0.1.properties.contains(.notify) }) {
             try await subscribe(to: "FF00/FF03", labelifeCredits: true)
         }
-        onEvent?("Submit \(job.id) · \(job.model.name) · \(job.model.language) · \(job.stock.description)")
+        onEvent?("Submit \(job.id) · \(job.model.name) · \(job.language.rawValue) · \(job.stock.description)")
         let (mode, chunks) = try await transmit(job.bytes, to: endpoint, mode: preferred)
         let result = Submission(runID: job.id, mode: mode, bytes: job.bytes.count, chunks: chunks)
         onEvent?(result.description)
@@ -172,17 +172,34 @@ public struct NearbyPrinter: Identifiable, Sendable {
         }
     }
 
+    /// Log packet writes, acknowledgements and unsolicited replies without sending a status command.
+    public func listenForRongtaReplies(to endpoint: PrinterEndpoint) async throws {
+        try begin()
+        defer { busy = false }
+        try await subscribeToRongtaReplies(for: endpoint)
+    }
+
+    private func subscribeToRongtaReplies(for endpoint: PrinterEndpoint) async throws {
+        let name = active.flatMap { seen[$0.identifier]?.1.name.uppercased() } ?? ""
+        guard name.hasPrefix("RP421") || name.hasPrefix("RP-421") else { throw BenchError("Select the Rongta RP421 from the live scan.") }
+        let reply = try RongtaDiagnostics.replyEndpoint(for: endpoint, in: inventory.map(\.0))
+        let wasTracing = tracingRongta
+        tracingRongta = true
+        do {
+            try await subscribe(to: reply.id, labelifeCredits: false)
+        } catch {
+            tracingRongta = wasTracing
+            throw error
+        }
+    }
+
     /// Subscribe before the request so that even a reply arriving ahead of the write callback is captured.
     /// A quiet window has an empty result. It makes no assertion about printer health.
     public func rongtaStatus(to endpoint: PrinterEndpoint, mode: WriteMode? = nil) async throws -> Data {
         try begin()
         defer { busy = false; replyBytes = nil }
-        let name = active.flatMap { seen[$0.identifier]?.1.name.uppercased() } ?? ""
-        guard name.hasPrefix("RP421") || name.hasPrefix("RP-421") else { throw BenchError("Select the Rongta RP421 from the live scan.") }
-        let reply = try RongtaDiagnostics.replyEndpoint(for: endpoint, in: inventory.map(\.0))
-        tracingRongta = true
-        try await subscribe(to: reply.id, labelifeCredits: false)
-        onEvent?("Host Rongta status query · TX \(endpoint.id), RX \(reply.id)")
+        try await subscribeToRongtaReplies(for: endpoint)
+        onEvent?("Host Rongta status query · TX \(endpoint.id), RX \(notificationEndpoint)")
         replyBytes = Data()
         _ = try await transmit(RongtaDiagnostics.statusQuery, to: endpoint, mode: mode, printJob: false)
         try await observing.wait(seconds: 3, deadline: { .success(()) }, start: {})

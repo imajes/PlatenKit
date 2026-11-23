@@ -7,11 +7,17 @@ public struct BenchError: LocalizedError {
     public var errorDescription: String? { message }
 }
 
+public enum PrinterLanguage: String, Sendable {
+    case zpl = "ZPL"
+    case tspl = "TSPL"
+}
+
 public enum PrinterModel: String, CaseIterable, Identifiable, Sendable {
     case rongta, labelife
     public var id: Self { self }
     public var name: String { self == .rongta ? "Rongta RP421A" : "Labelife AM-243-BT (PM-241-BT)" }
-    public var language: String { self == .rongta ? "ZPL" : "TSPL" }
+    public var defaultLanguage: PrinterLanguage { self == .rongta ? .zpl : .tspl }
+    public var language: String { defaultLanguage.rawValue }
 }
 
 public struct LabelStock: Sendable {
@@ -63,6 +69,7 @@ public struct LabelJob: Sendable {
     public let model: PrinterModel
     public let stock: LabelStock
     public let bytes: Data
+    public let language: PrinterLanguage
 
     public static func newID() -> String {
         "WL-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(12).uppercased()
@@ -77,17 +84,30 @@ public struct LabelJob: Sendable {
 
     /// Issue one ID-only label using the selected printer's encoding.
     public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock) throws -> Self {
+        try smoke(id: id, model: model, stock: stock, language: model.defaultLanguage)
+    }
+
+    /// Build one text job in the requested language. The Rongta text formats use its current media settings.
+    public static func smoke(id: String = newID(), model: PrinterModel, stock: LabelStock, language: PrinterLanguage) throws -> Self {
         try validate(id)
-        switch model {
-        case .rongta:
+        switch (model, language) {
+        case (.rongta, .zpl):
             let font = min(36, (stock.widthDots - 16) / id.utf8.count, stock.heightDots - 16)
             guard font >= 10 else { throw BenchError("Stock is too small for this test ID.") }
             // Use the printer's current media calibration for the first physical test.
             let text = "^XA^FO8,8^A0N,\(font),\(font)^FD\(id)^FS^PQ1^XZ"
-            return Self(id: id, model: model, stock: stock, bytes: Data(text.utf8))
-        case .labelife:
+            return Self(id: id, model: model, stock: stock, bytes: Data(text.utf8), language: language)
+        case (.rongta, .tspl):
+            // TSPL font 1 occupies 8 × 12 dots before magnification.
+            let scale = min(3, (stock.widthDots - 16) / (8 * id.utf8.count), (stock.heightDots - 16) / 12)
+            guard scale >= 1 else { throw BenchError("Stock is too small for this test ID.") }
+            let text = "CLS\r\nTEXT 8,8,\"1\",0,\(scale),\(scale),\"\(id)\"\r\nPRINT 1,1\r\n"
+            return Self(id: id, model: model, stock: stock, bytes: Data(text.utf8), language: language)
+        case (.labelife, .tspl):
             let page = try LabelRenderer.textPage(id, stock: stock)
             return try image(page, id: id, model: model, stock: stock)
+        case (.labelife, .zpl):
+            throw BenchError("The Labelife adapter supports TSPL.")
         }
     }
 
@@ -109,7 +129,7 @@ public struct LabelJob: Sendable {
         let format = ["^XA", "^FO\(squareX),\(top)", "^GB\(side),\(side),\(side),B,0^FS",
                       "^FO\(textX),\(top + side + gap)", "^A0N,\(font),\(font)^FD\(id)^FS", "^PQ1", "^XZ"]
         let bytes = Data((format.joined(separator: "\r\n") + "\r\n").utf8)
-        return Self(id: id, model: .rongta, stock: stock, bytes: bytes)
+        return Self(id: id, model: .rongta, stock: stock, bytes: bytes, language: .zpl)
     }
 
     public static func raster(_ page: LabelBitmap, id: String = newID(), model: PrinterModel, stock: LabelStock) throws -> Self {
@@ -141,7 +161,7 @@ public struct LabelJob: Sendable {
             LabelifeRaster.append(page, to: &data)
             data.append(contentsOf: "\r\nPRINT 1,1\r\n".utf8)
         }
-        return Self(id: id, model: model, stock: stock, bytes: data)
+        return Self(id: id, model: model, stock: stock, bytes: data, language: model.defaultLanguage)
     }
 
     private static func zplHeader(_ stock: LabelStock) -> String {

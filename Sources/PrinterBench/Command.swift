@@ -10,7 +10,7 @@ printer-bench rongta-status --device UUID [--endpoint SERVICE/WRITE] [--mode ack
 printer-bench rongta-mark --device UUID --width-mm W --height-mm H [--run-id ID] [--endpoint SERVICE/WRITE] [--mode acknowledged|queued] [--seconds 5]
 printer-bench smoke|test-label|image --device UUID --model rongta|labelife --width-mm W --height-mm H
     [--endpoint SERVICE/CHARACTERISTIC] [--mode acknowledged|queued] [--seconds 5] [--dpi 203] [--run-id ID]
-    image requires --file PATH; test-label accepts --artwork PATH
+    image requires --file PATH; test-label accepts --artwork PATH; smoke accepts --language zpl|tspl
 printer-bench preview --width-mm W --height-mm H --output NEW.png [--artwork PATH] [--run-id ID] [--dpi 203]
 
 Width is across the print head. Height is the feed length.
@@ -29,7 +29,7 @@ private struct Options {
             "scan": ["--match", "--seconds"], "inspect": ["--device", "--seconds"],
             "rongta-status": ["--device", "--seconds", "--endpoint", "--mode"],
             "rongta-mark": printOptions.filter { $0 != "--model" },
-            "smoke": printOptions, "test-label": printOptions + ["--artwork"], "image": printOptions + ["--file"],
+            "smoke": printOptions + ["--language"], "test-label": printOptions + ["--artwork"], "image": printOptions + ["--file"],
             "preview": ["--width-mm", "--height-mm", "--dpi", "--output", "--artwork", "--run-id"],
             "help": [], "--help": [], "-h": []
         ]
@@ -138,13 +138,20 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
             let modelName = command == "rongta-mark" ? "rongta" : try options.require("--model")
             guard let model = PrinterModel(rawValue: modelName) else { throw BenchError("Unknown printer model.") }
             let stock = try options.stock()
+            let label: LabelJob
             switch command {
-            case "rongta-mark": job = try .rongtaMark(id: id, stock: stock)
-            case "smoke": job = try .smoke(id: id, model: model, stock: stock)
-            case "image": job = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock)
-            default: job = try .image(fixture(stock), id: id, model: model, stock: stock)
+            case "rongta-mark": label = try .rongtaMark(id: id, stock: stock)
+            case "smoke":
+                let language = try values["--language"].map { raw in
+                    guard let value = PrinterLanguage(rawValue: raw.uppercased()) else { throw BenchError("Use zpl or tspl for --language.") }
+                    return value
+                }
+                label = try .smoke(id: id, model: model, stock: stock, language: language ?? model.defaultLanguage)
+            case "image": label = try .image(loadImage(options.require("--file")), id: id, model: model, stock: stock)
+            default: label = try .image(fixture(stock), id: id, model: model, stock: stock)
             }
-            writeLine("Requested \(command) · \(id) · \(model.name) · \(model.language) · \(stock.description) · paper unobserved")
+            job = label
+            writeLine("Requested \(command) · \(id) · \(model.name) · \(label.language.rawValue) · \(stock.description) · paper unobserved")
         }
         let devices = try await radio.scan(seconds: seconds)
         guard let device = devices.first(where: { $0.id == target }) else { throw BenchError("Selected peripheral did not appear in the current scan.") }
@@ -159,6 +166,8 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
             _ = try await radio.rongtaStatus(to: endpoint, mode: preferred)
         }
         guard let job else { return }
+        let traceText = job.model == .rongta && values["--language"] != nil
+        if traceText { try await radio.listenForRongtaReplies(to: endpoint) }
         let receipt = try await radio.submit(job, to: endpoint, mode: preferred)
         if command == "rongta-mark" {
             try await Task.sleep(nanoseconds: 2_000_000_000)
@@ -167,6 +176,6 @@ private func savePNG(_ image: CGImage, dpi: Int, path: String) throws {
             return
         }
         // Give the controller a chance to drain queued writes before this one-shot process exits.
-        if receipt.mode == .queued || job.model == .labelife { try await Task.sleep(nanoseconds: 2_000_000_000) }
+        if traceText || receipt.mode == .queued || job.model == .labelife { try await Task.sleep(nanoseconds: 2_000_000_000) }
     }
 }

@@ -56,11 +56,22 @@ The TSPL job sets page dimensions and direction, clears the image buffer, sends 
 
 ### Rongta bench
 
-Use the UUID from this Mac’s current scan. The status command connects, subscribes to the SDK’s matching reply characteristic and sends an 11-byte `~HQPRNSTA\r\n` query. The SDK documents this query for the related RP410. On the RP421A bench unit the Mac successfully subscribed to both documented channels present on the printer. Each acknowledged the query and returned zero notification bytes during the three-second observation window. These traces establish the Bluetooth exchange. The unit’s error state and internal job history remain unknown. [Status traces](BenchRuns/2026-11-20-rongta-2117Z/README.md)
+Find the unit by name and take its UUID from this Mac’s current scan.
 
 ```zsh
 swift run printer-bench scan --match RP421 --seconds 15
 printer_id='UUID-FROM-THIS-MACS-SCAN'
+```
+
+To compare command languages, print a single text ID near the top-left of the 4 × 2 inch stock. Choose `zpl` or `tspl` for one run at a time. This option selects the encoding on the Mac. Each invocation sends one text label with the current media settings and passively logs the outgoing bytes, write acknowledgements and incoming notifications. The TSPL job uses the printer’s built-in font.
+
+```zsh
+swift run printer-bench smoke --model rongta --device "$printer_id" --language zpl --endpoint 18F0/2AF1 --width-mm 101.6 --height-mm 50.8
+```
+
+The status command connects, subscribes to the SDK’s matching reply characteristic and sends an 11-byte `~HQPRNSTA\r\n` query. The SDK documents this query for the related RP410. On the RP421A bench unit the Mac successfully subscribed to both documented channels present on the printer. Each acknowledged the query and returned zero notification bytes during the three-second observation window. These traces establish the Bluetooth exchange. The unit’s error state and internal job history remain unknown. [Status traces](BenchRuns/2026-11-20-rongta-2117Z/README.md)
+
+```zsh
 swift run printer-bench rongta-status --device "$printer_id" --endpoint 18F0/2AF1 --seconds 15
 ```
 

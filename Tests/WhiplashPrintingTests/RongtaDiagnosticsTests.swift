@@ -27,4 +27,25 @@ final class RongtaDiagnosticsTests: XCTestCase {
         XCTAssertEqual(job.bytes, Data(expected.utf8))
         XCTAssertThrowsError(try LabelJob.rongtaMark(id: "bad^XZ", stock: stock))
     }
+
+    func testRongtaTextJobsUseTheirDeclaredLanguageAndRequestOneCopy() throws {
+        let stock = try LabelStock(widthMM: 101.6, heightMM: 50.8)
+        let id = "WL-TEXT-01"
+        let zpl = try LabelJob.smoke(id: id, model: .rongta, stock: stock, language: .zpl)
+        let tspl = try LabelJob.smoke(id: id, model: .rongta, stock: stock, language: .tspl)
+        XCTAssertEqual(zpl.language, .zpl)
+        XCTAssertEqual(zpl.bytes, Data("^XA^FO8,8^A0N,36,36^FDWL-TEXT-01^FS^PQ1^XZ".utf8))
+        XCTAssertEqual(try LabelJob.smoke(id: id, model: .rongta, stock: stock).bytes, zpl.bytes)
+        XCTAssertEqual(tspl.language, .tspl)
+        XCTAssertEqual(tspl.bytes, Data("CLS\r\nTEXT 8,8,\"1\",0,3,3,\"WL-TEXT-01\"\r\nPRINT 1,1\r\n".utf8))
+        XCTAssertThrowsError(try LabelJob.smoke(id: "X\"\r\nPRINT 2", model: .rongta, stock: stock, language: .tspl))
+        XCTAssertThrowsError(try LabelJob.smoke(id: id, model: .labelife, stock: stock, language: .zpl))
+    }
+
+    func testTSPLTextFitsTheStockAtItsSmallestFont() throws {
+        let stock = try LabelStock(widthMM: 6, heightMM: 6)
+        let label = try LabelJob.smoke(id: "ABCD", model: .rongta, stock: stock, language: .tspl)
+        XCTAssertEqual(label.bytes, Data("CLS\r\nTEXT 8,8,\"1\",0,1,1,\"ABCD\"\r\nPRINT 1,1\r\n".utf8))
+        XCTAssertThrowsError(try LabelJob.smoke(id: "ABCDE", model: .rongta, stock: stock, language: .tspl))
+    }
 }
