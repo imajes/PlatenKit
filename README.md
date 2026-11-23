@@ -28,7 +28,7 @@ swift run printer-bench test-label --model labelife --device "$printer_id" --wid
 To preview the design offline, supply a new PNG filename. To print a fully composed page, use `image`. The image command preserves its contents, so its journal ID can differ from text already present in the image.
 
 ```zsh
-swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id WL-CONTROL --output control.png
+swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id PK-CONTROL --output control.png
 swift run printer-bench image --model labelife --device "$printer_id" --width-mm 101.6 --height-mm 152.4 --file control.png
 ```
 
@@ -165,7 +165,7 @@ func printBox(_ runID: String, artwork: CGImage?, selected: NearbyPrinter,
 }
 ```
 
-Supply `LabelJob.newID()` for a fresh bench ID. Existing IDs accept 1–32 ASCII letters, digits, hyphens or underscores. `LabelJob.image` aspect-fits a complete page onto white stock. `compose` adds caller text, artwork and a QR before thresholding. `Submission` reports the run ID, byte count, chunk count and whether the transport acknowledged or queued the writes. Set `radio.onEvent` to record connection events, device messages and errors. If a disconnect or timeout occurs after any bytes were submitted, the component reports an uncertain outcome. Check the paper before explicitly requesting another label.
+Use `LabelJob.newID()` for a fresh bench ID with the prefix `PK-`, or supply 1–32 ASCII letters, digits, hyphens or underscores as your own ID. `LabelJob.image` aspect-fits a complete page onto white stock. `compose` adds caller text, artwork and a QR before thresholding. `Submission` reports the run ID, byte count, chunk count and whether the transport acknowledged or queued the writes. Set `radio.onEvent` to record connection events, device messages and errors. If a disconnect or timeout occurs after any bytes were submitted, the component reports an uncertain outcome. Check the paper before explicitly requesting another label.
 
 ## Build and verify
 
@@ -179,13 +179,13 @@ swift run printer-bench help
 
 The tests cover complete Labelife pages, LZO block boundaries and byte polarity, odd-width padding, ZPL field limits, supplied artwork, QR module layout, profile selection, packet credits, queued and acknowledged writes, cancellation, stale completions and interrupted submissions. For the Rongta, they check that the default ID uses the rendered image bytes and one copy on 4 × 2 inch stock. Separate diagnostics check the built-in font commands, SDK query bytes, three mapped reply endpoints, byte trace and square-and-text label. An independent bench check also decompressed the actual Labelife QR job with liblzo2, compared every raster dot with the PNG, and decoded the QR from those bytes. liblzo2 is only needed to repeat that independent comparison.
 
-The included Xcode project references the package locally. With device support, a development identity and the matching profile already available, build the iPhone target using the shared scheme.
+The included Xcode project references the package at the repository root. With Xcode and the iOS SDK installed, compile the shared scheme for a generic iPhone without signing.
 
 ```zsh
-xcodebuild -project BenchApp/PrinterBench.xcodeproj -scheme PrinterBench -destination 'generic/platform=iOS' build
+xcodebuild -project BenchApp/PrinterBench.xcodeproj -scheme PrinterBench -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
-The app uses the Whiplash development team, bundle ID `app.smokeclouds.whiplash.printerbench`, and a Bluetooth usage description. Building, launching and scanning produce zero labels. Installing on a phone, pairing, changing developer-account settings, or installing system components requires James’s separate approval. On this Mac, even Xcode device enumeration previously attempted a support-package install.
+To run the bench on your own iPhone, select your development team in **Signing & Capabilities** and replace the example bundle identifier `org.example.platenkit.printerbench` with one your team can sign. The project includes the Bluetooth usage description. The operator chooses each print explicitly.
 
 ## Real iPhone acceptance
 

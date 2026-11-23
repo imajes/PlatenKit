@@ -1,6 +1,6 @@
 name: PrinterBench
 options:
-  bundleIdPrefix: app.smokeclouds.whiplash
+  bundleIdPrefix: org.example.platenkit
   deploymentTarget:
     iOS: "16.0"
 packages:
@@ -16,11 +16,10 @@ targets:
         product: PlatenKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.smokeclouds.whiplash.printerbench
-        DEVELOPMENT_TEAM: 55GFE7X4J4
+        PRODUCT_BUNDLE_IDENTIFIER: org.example.platenkit.printerbench
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Whiplash Bench
+        INFOPLIST_KEY_CFBundleDisplayName: PlatenKit Bench
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: Find your selected label printer and send a label when you request one.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

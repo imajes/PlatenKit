@@ -97,7 +97,6 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					6E3885A3D7B15100A9A658FD = {
-						DevelopmentTeam = 55GFE7X4J4;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -263,9 +262,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 55GFE7X4J4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Whiplash Bench";
+				INFOPLIST_KEY_CFBundleDisplayName = "PlatenKit Bench";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Find your selected label printer and send a label when you request one.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -274,7 +272,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = app.smokeclouds.whiplash.printerbench;
+				PRODUCT_BUNDLE_IDENTIFIER = org.example.platenkit.printerbench;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -288,9 +286,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 55GFE7X4J4;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Whiplash Bench";
+				INFOPLIST_KEY_CFBundleDisplayName = "PlatenKit Bench";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Find your selected label printer and send a label when you request one.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -299,7 +296,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = app.smokeclouds.whiplash.printerbench;
+				PRODUCT_BUNDLE_IDENTIFIER = org.example.platenkit.printerbench;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

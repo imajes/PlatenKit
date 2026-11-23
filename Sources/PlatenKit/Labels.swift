@@ -86,7 +86,7 @@ public struct LabelJob: Sendable {
     public let language: PrinterLanguage
 
     public static func newID() -> String {
-        "WL-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(12).uppercased()
+        "PK-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").prefix(12).uppercased()
     }
 
     private static func validate(_ id: String) throws {

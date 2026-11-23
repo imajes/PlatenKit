@@ -10,11 +10,11 @@ From the root checkout, use an installed Swift 6 toolchain on macOS 13 or later.
 cd WhiplashPrinting
 swift test
 preview_dir=$(mktemp -d "${TMPDIR:-/tmp}/whiplash-label.XXXXXX")
-swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id WL-PREVIEW --output "$preview_dir/label.png"
+swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id PK-PREVIEW --output "$preview_dir/label.png"
 print -r -- "$preview_dir/label.png"
 ```
 
-At 203 dpi the preview is 812 × 1,218 pixels. It contains `WL-PREVIEW` as text and QR, plus an asymmetric square for checking orientation. For a live Mac run, `printer-bench smoke` renders a fresh ID as a bitmap and requests one copy on the selected printer. [Print one Rongta label](README.md#rongta-bench) · [Print one Labelife label](README.md#print-one-labelife-label-from-the-mac)
+At 203 dpi the preview is 812 × 1,218 pixels. It contains `PK-PREVIEW` as text and QR, plus an asymmetric square for checking orientation. For a live Mac run, `printer-bench smoke` renders a fresh ID as a bitmap and requests one copy on the selected printer. [Print one Rongta label](README.md#rongta-bench) · [Print one Labelife label](README.md#print-one-labelife-label-from-the-mac)
 
 ## 2. Add the library to the iOS target
 
@@ -110,7 +110,7 @@ To set a physical title size, use `try LabelFont(postScriptName: "Karla", weight
 
 ## 4. Verify paper on a real iPhone
 
-Open `BenchApp/PrinterBench.xcodeproj`, select the **PrinterBench** scheme and use an already provisioned iPhone with the appropriate development signing identity. Obtain James’s approval before installing on the phone, changing pairing or signing settings, or installing developer support. [Build the standalone harness](README.md#build-and-verify)
+Open `BenchApp/PrinterBench.xcodeproj` and select the **PrinterBench** scheme. Under **Signing & Capabilities**, choose your development team and a bundle identifier your team can sign. Select your iPhone as the run destination and run the app. [Build the standalone harness](README.md#build-and-verify)
 
 Release the printer from any vendor app or other bench session before scanning. In the harness, choose the model, tap **Scan nearby**, select the unit, then **Connect and inspect**. If discovery fails, check Bluetooth permission for this app and repeat the scan with the unit awake. Leave **Match printer profile** selected on these bench units. If selection is ambiguous, inspect the reported services before choosing an endpoint. Choose **Print artwork, text and QR** for each acceptance label. For a separate ID-only test, **Print ID only** calls the same `LabelJob.smoke` bitmap path used by the Mac CLI. [iPhone harness](BenchApp/App/PrinterBenchApp.swift)
 

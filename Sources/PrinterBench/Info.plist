@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-    <key>CFBundleIdentifier</key><string>app.smokeclouds.whiplash.printer-bench-cli</string>
-    <key>CFBundleName</key><string>Whiplash Printer Bench</string>
+    <key>CFBundleIdentifier</key><string>org.example.platenkit.printer-bench-cli</string>
+    <key>CFBundleName</key><string>PlatenKit Printer Bench</string>
     <key>NSBluetoothAlwaysUsageDescription</key><string>Find the label printer you select and send a test label when requested.</string>
 </dict></plist>
