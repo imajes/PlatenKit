@@ -144,7 +144,11 @@ final class PrinterTests: XCTestCase {
         let encoder = CIFilter.qrCodeGenerator()
         encoder.message = Data(id.utf8)
         encoder.correctionLevel = "M"
-        let reference = try XCTUnwrap(encoder.outputImage?.cgImage)
+        let symbol = try XCTUnwrap(encoder.outputImage)
+        // Core Image can return either a backed bitmap or a filter result that needs rendering.
+        let reference = try XCTUnwrap(
+            symbol.cgImage ?? CIContext(options: [.useSoftwareRenderer: true]).createCGImage(symbol, from: symbol.extent)
+        )
         let n = reference.width
         let context = try XCTUnwrap(CGContext(data: nil, width: n, height: n, bitsPerComponent: 8, bytesPerRow: n,
                                               space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue))
