@@ -1,6 +1,6 @@
 # First Mac Bluetooth print on the Rongta RP421A
 
-James confirmed that the Rongta printed when Whiplash sent `WL-G9-0035` as an image on the 4 × 2 inch roll. This was a text-only design. The program requested one copy. James reported “success!” after the write completed.
+James confirmed that the Rongta printed when the Mac bench sent `WL-G9-0035` as an image on the 4 × 2 inch roll. This was a text-only design. The program requested one copy. James reported “success!” after the write completed.
 
 | Stage | Result |
 | --- | --- |

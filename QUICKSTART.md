@@ -1,15 +1,14 @@
 # Print from a native Swift iPhone app
 
-The planned Whiplash iPhone app can import `PlatenKit` directly through Swift Package Manager. The package takes a rendered page, physical label dimensions and a run ID, and sends one job to the selected Bluetooth printer. The included SwiftUI bench is a working example. On the Mac, the Rongta printed an ID rendered as a ZPL bitmap on 4 × 2 inch stock, and the Labelife printed artwork and a scannable QR on 4 × 6 inch stock. Both printers still need the Whiplash iPhone trials in section 4. [Rongta image and trace](BenchRuns/2026-11-23-rongta-0036Z/README.md) · [Labelife paper results](README.md#physical-evidence)
+This guide takes you from a PNG preview to an explicit Print action in a SwiftUI app. PlatenKit takes a rendered page, the physical label dimensions and a run ID, then submits one job to the selected Bluetooth printer. The included iPhone bench shows the complete integration. The Mac has produced labels on both models. The physical iPhone checks in section 4 are pending. [Rongta image and trace](BenchRuns/2026-11-23-rongta-0036Z/README.md) · [Labelife paper results](README.md#physical-evidence)
 
 ## 1. Build and preview a label on the Mac
 
-From the root checkout, use an installed Swift 6 toolchain on macOS 13 or later. These commands run the package tests and render a 4 × 6 inch Labelife design to a new PNG. They work with both printers switched off.
+Open a terminal in the PlatenKit repository root, alongside `Package.swift`. With Swift 6 and the macOS SDK installed, run the tests and render a 4 × 6 inch design to a new PNG. They work with both printers switched off.
 
 ```zsh
-cd WhiplashPrinting
 swift test
-preview_dir=$(mktemp -d "${TMPDIR:-/tmp}/whiplash-label.XXXXXX")
+preview_dir=$(mktemp -d "${TMPDIR:-/tmp}/platenkit-label.XXXXXX")
 swift run printer-bench preview --width-mm 101.6 --height-mm 152.4 --run-id PK-PREVIEW --output "$preview_dir/label.png"
 print -r -- "$preview_dir/label.png"
 ```
@@ -18,13 +17,15 @@ At 203 dpi the preview is 812 × 1,218 pixels. It contains `PK-PREVIEW` as text 
 
 ## 2. Add the library to the iOS target
 
-1. To try the existing integration, open `BenchApp/PrinterBench.xcodeproj`. When starting the Whiplash app after hardware acceptance, use an iOS **App** target with **Swift** as the language and a minimum deployment target of iOS 16 or later. This guide uses **SwiftUI** for the interface. [Apple’s app project guide](https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app)
-2. In the new app’s Xcode package dependency dialog, choose **Add Local** and select the root checkout’s **WhiplashPrinting** folder containing `Package.swift`. Add the **PlatenKit** library product to the application target. Use a path relative to the app project so other checkouts and build machines can resolve it. The bench already links the product this way. [Bench project configuration](BenchApp/project.yml) · [Apple’s package dependency guide](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app)
+1. To try the included example, open `BenchApp/PrinterBench.xcodeproj`. For your own app, use an iOS **App** target with **Swift** as the language and iOS 16 or later as the minimum deployment target. This guide uses **SwiftUI** for the interface. [Apple’s app project guide](https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app)
+2. In the new app’s Xcode package dependency dialog, choose **Add Local** and select the PlatenKit repository root containing `Package.swift`. Add the **PlatenKit** library product to the application target. Use a path relative to the app project so other checkouts and build machines can resolve it. The bench already links the product this way. [Bench project configuration](BenchApp/project.yml) · [Apple’s package dependency guide](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app)
 3. In the app target’s **Info** settings, add `NSBluetoothAlwaysUsageDescription` with a reason such as “Find your selected label printer and send a label when you request one.” For a generated `Info.plist`, the equivalent build setting is `INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription`. The first user-initiated scan can prompt for Bluetooth access. [Apple’s Bluetooth permission key](https://developer.apple.com/documentation/bundleresources/information-property-list/nsbluetoothalwaysusagedescription)
+
+For a Swift package with PlatenKit in a sibling checkout, add `.package(path: "../PlatenKit")` to the manifest’s package dependencies. Add `.product(name: "PlatenKit", package: "PlatenKit")` to the consuming target’s dependencies and `import PlatenKit` in its Swift files.
 
 ## 3. Wire Scan, Connect, Print and Disconnect
 
-Keep one session on the main actor across the printer picker and the saved-box screen. Display the `NearbyPrinter` results from the latest scan, let the operator choose one by name and ID, and pass that result to `connect`. On this bench, `AM-243Z-BT-5AD6` is the Labelife and `RP421-A8C5` is the Rongta. Use the identifier from the current host’s scan, the matching model and the stock actually loaded.
+Keep one session on the main actor across the printer picker and the view that submits the label. Display the `NearbyPrinter` results from the latest scan, let the operator choose one by name and ID, and pass that result to `connect`. On this bench, `AM-243Z-BT-5AD6` is the Labelife and `RP421-A8C5` is the Rongta. Use the identifier from the current host’s scan, the matching model and the stock actually loaded.
 
 | Bench printer | Swift model | Width across head × length along feed | Bench resolution |
 | --- | --- | --- | --- |
@@ -38,7 +39,7 @@ import SwiftUI
 import PlatenKit
 
 @MainActor
-final class BoxLabelPrinter: ObservableObject {
+final class LabelPrinterSession: ObservableObject {
     @Published private(set) var nearby: [NearbyPrinter] = []
     private let radio = BluetoothPrinter()
     private var selection: (id: UUID, model: PrinterModel, endpoint: PrinterEndpoint)?
@@ -83,7 +84,7 @@ final class BoxLabelPrinter: ObservableObject {
 }
 ```
 
-In the SwiftUI view that owns the packing flow, declare `@StateObject private var printer = BoxLabelPrinter(log: { print($0) })`. This keeps the session alive as views redraw. Pass the same object to the picker and saved-box screen using `@ObservedObject`. The example logs to the debug console. Supply the app’s journal callback to keep a record across launches. [SwiftUI ownership in the bench](BenchApp/App/PrinterBenchApp.swift) · [Apple’s StateObject guide](https://developer.apple.com/documentation/swiftui/stateobject)
+In the SwiftUI view that owns the printer session, declare `@StateObject private var printer = LabelPrinterSession(log: { print($0) })`. This keeps the session alive as views redraw. Pass the same object to child views using `@ObservedObject`. The example logs to the debug console. Supply the app’s journal callback to keep a record across launches. [SwiftUI ownership in the bench](BenchApp/App/PrinterBenchApp.swift) · [Apple’s StateObject guide](https://developer.apple.com/documentation/swiftui/stateobject)
 
 On **Scan**, call `try await printer.scan()` and display `printer.nearby`. Disable duplicate taps while each async action is in progress. Disconnect before scanning for another printer. After a link drops, scan, select and inspect again. The adapter handles packet sizing, write acknowledgments and flow control. [Working iPhone session and journal](BenchApp/App/BenchState.swift)
 
@@ -91,7 +92,7 @@ From the **Print** action, generate a fresh `LabelJob.newID()` and record it bef
 
 ```swift
 @MainActor
-func printTrial(using printer: BoxLabelPrinter, runID: String, stock: LabelStock,
+func printTrial(using printer: LabelPrinterSession, runID: String, stock: LabelStock,
                 artwork: CGImage? = nil, font: LabelFont? = nil,
                 artworkMode: LabelImageMode = .lineArt) async throws -> Submission {
     let page = try LabelRenderer.compose(artwork: artwork, text: runID, qrPayload: runID,
@@ -102,7 +103,7 @@ func printTrial(using printer: BoxLabelPrinter, runID: String, stock: LabelStock
 
 For the Labelife stock above, construct `try LabelStock(widthMM: 101.6, heightMM: 152.4, dpi: 203)`. If the app already composes a complete label, pass its `CGImage` directly to `printOne`. Rasterize upstream SVG artwork to a `CGImage` before passing it to `compose` or `printOne`.
 
-For a photograph of a box or its contents, pass the photograph as `artwork` and set `artworkMode: .photo`. Whiplash dithers the photograph at its final printed size and draws the title and QR separately. Use the default `.lineArt` for logos and monochrome artwork. In the iPhone bench, choose the image and select **Artwork type → Photograph** to exercise the same code. [Offline preview and physical comparison](README.md#print-photographs)
+For a photograph, pass the image as `artwork` and set `artworkMode: .photo`. PlatenKit dithers the photograph at its final printed size and draws the title and QR separately. Use the default `.lineArt` for logos and monochrome artwork. In the iPhone bench, choose the image and select **Artwork type → Photograph** to exercise the same code. [Offline preview and physical comparison](README.md#print-photographs)
 
 For an exact typeface, pass `try LabelFont(postScriptName: "Karla", weight: 275)` as the `font` argument. Swift Package Manager includes the upright Karla variable font with the library on both platforms. An installed or app-registered face can be selected by its full PostScript name, such as `Courier-Bold`. A font shipped in your app’s resources or imported from Files can also be loaded directly with `try LabelFont(data: Data(contentsOf: url))`. Add `weight:` when using a variable weight axis. This file-based path reads the font into memory for rendering. For ID-only jobs, pass the same font to `LabelJob.smoke(id:model:stock:font:)`. [Mac preview and bench commands](README.md#choose-the-label-font) · [Apple’s font file guidance](https://developer.apple.com/documentation/uikit/adding-a-custom-font-to-your-app)
 
@@ -118,8 +119,8 @@ For each printer, request one label on the initial connection, one after reconne
 
 A `Submission` records `runID`, `mode`, `bytes` and `chunks`. An acknowledged write reached the Bluetooth endpoint. A queued write was handed to the host Bluetooth stack. If submission is interrupted after bytes were handed over, show the uncertain outcome, check the paper and leave reprinting to an explicit operator action.
 
-## 5. Print a label from a saved box
+## 5. Connect printing to an app action
 
-When both printers pass the iPhone trials, bind **Print label** on the saved-box screen to the shared session. Give `LabelRenderer.compose` the box title, any artwork, and the saved box ID as its QR payload. Give `printOne` the composed page, the selected stock and a fresh run ID. Store the submission or error against that attempt. A deliberate reprint uses the same box record and QR payload with a new run ID.
+Bind the app’s **Print label** action to the shared session. For an inventory label, give `LabelRenderer.compose` the item title and artwork, and use the item’s stable identifier as the QR payload. Pass the composed page, the selected stock and a fresh run ID to `printOne`. Store the submission or error against that attempt. On a deliberate reprint, keep the item’s QR payload and give the attempt a new run ID.
 
-Verify that launching the app, selecting a unit and reconnecting each produce zero labels. One explicit Print action should produce exactly one label on the selected unit. Beads tracks the Rongta proof in `whiplash-570.3`, the Labelife proof in `whiplash-99r`, and this app integration in `whiplash-570.6`.
+Check that launching the app, selecting a unit and reconnecting each produce zero labels. One explicit Print action should produce exactly one label on the selected unit.

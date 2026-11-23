@@ -1,10 +1,15 @@
 # PlatenKit
 
-Add the `PlatenKit` library product and use `import PlatenKit`.
+PlatenKit is a Swift package for printing Bluetooth labels on macOS and iOS. Give it a complete image, or compose a label from text, artwork and a QR payload. The Mac CLI and the SwiftUI iPhone example share the same renderer, Bluetooth transport and printer adapters.
 
-A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Mac printed the same photographic design on the Rongta RP421A (4 × 2 inches, ZPL) and the Labelife AM-243-BT (4 × 6 inches, TSPL). Both also printed readable bitmap text, and the Labelife produced a scannable QR. Physical trials from the Whiplash iPhone app are the next milestone. [Paper photograph and Bluetooth traces](BenchRuns/2026-11-23-moon-0132Z/README.md)
+Add the **PlatenKit** library product to your app and use `import PlatenKit`. All commands below run from the directory containing [Package.swift](Package.swift). You can render your first PNG with the printer switched off. [Quickstart and Swift integration example](QUICKSTART.md)
 
-To use the library directly in a native Swift app, follow the [iPhone integration quickstart](QUICKSTART.md). It covers an offline preview, adding the local package in Xcode, owning a printer session in SwiftUI, and verifying the result on paper.
+| Printer | Adapter | Verified physical output from macOS |
+| --- | --- | --- |
+| Rongta RP421A | ZPL graphics | Readable bitmap text and dithered artwork on 4 × 2 inch stock |
+| Labelife AM-243-BT (PM-241-BT) | TSPL mode-4 bitmap | Readable text, a scannable QR and dithered artwork on 4 × 6 inch stock |
+
+The iPhone bench builds against the same package. Physical iPhone trials through PlatenKit are still pending for both models. [Mac paper comparison](BenchRuns/2026-11-23-moon-0132Z/README.md) · [iPhone test procedure](#real-iphone-acceptance)
 
 ## Print one Labelife label from the Mac
 
@@ -34,7 +39,7 @@ swift run printer-bench image --model labelife --device "$printer_id" --width-mm
 
 ## Choose the label font
 
-Whiplash draws the text on the Mac or iPhone at the stock’s print resolution. The Rongta receives the resulting dots as a ZPL graphic, and the Labelife receives them as a TSPL bitmap. The same font choice applies to an ID-only label and to the title on an artwork-and-QR label. A pre-rendered image carries its own lettering.
+PlatenKit draws the text on the Mac or iPhone at the stock’s print resolution. The Rongta receives the resulting dots as a ZPL graphic, and the Labelife receives them as a TSPL bitmap. The same font choice applies to an ID-only label and to the title on an artwork-and-QR label. A pre-rendered image carries its own lettering.
 
 Use `--font Karla --font-weight 275` for the bundled upright Karla. Its OpenType weight axis covers 200 through 800, including Light at 300. For another face, use its exact PostScript name, such as `--font Courier-Bold`, or pass a standalone font with `--font-file /path/to/face.ttf`. The file can also be OpenType (`.otf`). Set a numeric weight for a font with a variable weight axis. Fixed-weight faces use the weight in their file or name. An unavailable face, unsupported weight, or character the selected font cannot draw produces an error before submission. With no font selected, the renderer keeps the original Helvetica Bold layout. [Karla font metadata](https://raw.githubusercontent.com/google/fonts/main/ofl/karla/METADATA.pb) · [Bundled font license](Sources/PlatenKit/Resources/OFL.txt)
 
@@ -58,7 +63,7 @@ To give fine lettering more printer dots, specify a physical size with `--font-s
 
 ## Print photographs
 
-Use `--image-mode photo` for photographs. The renderer fits the picture to its final size at the stock’s DPI and uses Floyd–Steinberg dithering to represent intermediate tones with patterns of black dots. On the Moon comparison, James preferred the dithered half on both printers. The Swift renderer reproduced every dot in the 284 × 284 picture used for each physical print. [Side-by-side paper results](BenchRuns/2026-11-23-moon-0132Z/README.md) · [Grayscale Moon used by the regression test](Tests/PlatenKitTests/Fixtures/moon-gray-284.png)
+Use `--image-mode photo` for photographs. The renderer fits the picture to its final size at the stock’s DPI and uses Floyd–Steinberg dithering to represent intermediate tones with patterns of black dots. On paper, the dithered Moon preserved more surface detail on both printers. The Swift renderer reproduced every dot in the 284 × 284 picture used for each physical print. [Side-by-side paper results](BenchRuns/2026-11-23-moon-0132Z/README.md) · [Grayscale Moon used by the regression test](Tests/PlatenKitTests/Fixtures/moon-gray-284.png)
 
 To preview a photograph alongside a Karla title and a QR code, run this from the package directory and choose a new output filename. The preview is an 812 × 406 pixel image of the actual print dots and works with the printers off.
 
@@ -101,7 +106,7 @@ The selected unit advertised `1812` and `AF30`. Service discovery after connecti
 
 The adapter subscribes to `FF03` before sending the job. The printer initially granted seven write credits (`01 07`) and reported a 244-byte packet limit (`02 F4 00`). One credit permits one packet. The component waits for new credits as needed and also enforces Core Bluetooth’s write limit and flow control for the selected write mode. Both verified runs used writes with response. Ordinary print messages, including `SSSGETPRINTING:DOING` and `Cmd error` lines, are assembled across notifications and appear in the journal. The component sends no status poll. This unit rejected explicit polling during the bench tests.
 
-The TSPL job sets page dimensions and direction, clears the image buffer, sends `BITMAP 0,0,<row bytes>,<rows>,4,`, then issues `PRINT 1,1` once. The adapter packs the image MSB first with a zero for ink and white row padding. Each 4,096-byte slice is independently LZO1X encoded and prefixed with its compressed length as a 32-bit little-endian integer. A zero length terminates the stream. This matches the local manufacturer’s AM-243-BT and PM-241-BT-Bluetooth driver profiles. The 4 × 6 design is 812 × 1,218 dots with a 102-byte stride. The Swift encoder runs on both platforms without an external compression library.
+The TSPL job sets page dimensions and direction, clears the image buffer, sends `BITMAP 0,0,<row bytes>,<rows>,4,`, then issues `PRINT 1,1` once. The adapter packs the image MSB first with a zero for ink and white row padding. Each 4,096-byte slice is independently LZO1X encoded and prefixed with its compressed length as a 32-bit little-endian integer. A zero length terminates the stream. The AM-243-BT and PM-241-BT-Bluetooth driver profiles used during the bench investigation use this same framing. The 4 × 6 design is 812 × 1,218 dots with a 102-byte stride. The Swift encoder runs on both platforms without an external compression library.
 
 ### Rongta bench
 
@@ -191,6 +196,4 @@ To run the bench on your own iPhone, select your development team in **Signing &
 
 Select the model, tap **Scan nearby**, choose the unit, then **Connect and inspect**. Leave **Match printer profile** selected for this Labelife. Use **Print artwork, text and QR** for each acceptance run. The app saves its journal across launches. Use **Paper check** to record the label count, readable text and artwork, and the QR scanned from the label. **Share full journal** exports the results.
 
-For each printer, make three separately requested prints with fresh IDs: initial connection, after disconnecting and reconnecting, and after restarting the printer and relaunching the app. Each request must produce exactly one label on the selected unit, with the QR decoding to its run ID. Log host OS, app and firmware versions when known, stock, transport, command language, discovery, endpoint, write result, and physical observation.
-
-Beads `whiplash-99r` holds the Labelife runs, `whiplash-570.3` holds the Rongta runs, and `whiplash-570.7` holds the shared software. Both real-iPhone proofs are prerequisites for `whiplash-570.6`, the Whiplash UI integration.
+For each printer, request one label on the initial connection, one after disconnecting and reconnecting, and one after restarting the printer and relaunching the app. Use a fresh ID each time. Each request must produce exactly one label on the selected unit, with the QR decoding to its run ID. Log host OS, app and firmware versions when known, stock, transport, command language, discovery, endpoint, write result, and physical observation.
