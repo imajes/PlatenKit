@@ -17,4 +17,10 @@ In the local Rongta iOS SDK, `PrinterManager.m` passes label width and height in
 
 An offline check passed a 4 × 2 inch page through the shared renderer and Rongta image encoder. The resulting ZPL contained a single `^GFA` graphic with 41,412 raster bytes at a 102-byte stride. Extracting those bytes and unpacking the dots produced an 812 × 406 image whose QR decoded to `WL-R-PREVIEW`. Physical raster output remains unverified.
 
-The earlier Rongta iPhone app attempt preceded the power-supply correction. The next comparison is one short text label from that app on the same 4 × 2 inch roll, with the Mac disconnected.
+James reports that he has been unable to get a printed label from the Rongta iPhone app. The app’s submission state is unknown.
+
+## Planned USB comparison
+
+James will connect the printer’s USB data port directly to the Mac when convenient. Keep the correct power supply and the same 4 × 2 inch roll in place. Identify the Rongta on USB and an existing route that can send raw ZPL. Use the captured 88-byte label format with a fresh, equal-length run ID and a single copy. The two Bluetooth status queries were separate writes and are outside the USB label payload.
+
+Record whether the Mac detected the unit, how it submitted the bytes and whether the square and ID appeared on paper. A readable wired label would confirm that the printer accepts this ZPL format from an external host and narrow the next comparison to Bluetooth delivery. The USB trial is pending.
