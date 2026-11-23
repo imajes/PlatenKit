@@ -1,6 +1,6 @@
 # PlatenKit
 
-Add the `PlatenKit` library product and use `import PlatenKit`. This checkout keeps the package in the `WhiplashPrinting` directory. The original `WhiplashPrinting` product still exposes its existing public types for apps that already import it.
+Add the `PlatenKit` library product and use `import PlatenKit`.
 
 A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Mac printed the same photographic design on the Rongta RP421A (4 × 2 inches, ZPL) and the Labelife AM-243-BT (4 × 6 inches, TSPL). Both also printed readable bitmap text, and the Labelife produced a scannable QR. Physical trials from the Whiplash iPhone app are the next milestone. [Paper photograph and Bluetooth traces](BenchRuns/2026-11-23-moon-0132Z/README.md)
 
@@ -58,14 +58,14 @@ To give fine lettering more printer dots, specify a physical size with `--font-s
 
 ## Print photographs
 
-Use `--image-mode photo` for photographs. The renderer fits the picture to its final size at the stock’s DPI and uses Floyd–Steinberg dithering to represent intermediate tones with patterns of black dots. On the Moon comparison, James preferred the dithered half on both printers. The Swift renderer reproduced every dot in the 284 × 284 picture used for each physical print. [Side-by-side paper results](BenchRuns/2026-11-23-moon-0132Z/README.md) · [Grayscale Moon used by the regression test](Tests/WhiplashPrintingTests/Fixtures/moon-gray-284.png)
+Use `--image-mode photo` for photographs. The renderer fits the picture to its final size at the stock’s DPI and uses Floyd–Steinberg dithering to represent intermediate tones with patterns of black dots. On the Moon comparison, James preferred the dithered half on both printers. The Swift renderer reproduced every dot in the 284 × 284 picture used for each physical print. [Side-by-side paper results](BenchRuns/2026-11-23-moon-0132Z/README.md) · [Grayscale Moon used by the regression test](Tests/PlatenKitTests/Fixtures/moon-gray-284.png)
 
 To preview a photograph alongside a Karla title and a QR code, run this from the package directory and choose a new output filename. The preview is an 812 × 406 pixel image of the actual print dots and works with the printers off.
 
 ```zsh
 swift run printer-bench preview --width-mm 101.6 --height-mm 50.8 --run-id Box-014-Kitchen \
   --font Karla --font-weight 275 --font-size-pt 24 \
-  --artwork Tests/WhiplashPrintingTests/Fixtures/moon-gray-284.png --image-mode photo \
+  --artwork Tests/PlatenKitTests/Fixtures/moon-gray-284.png --image-mode photo \
   --monochrome --output moon-preview.png
 ```
 

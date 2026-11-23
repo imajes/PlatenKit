@@ -102,7 +102,7 @@ final class LabelFontTests: XCTestCase {
     }
 
     func testUnusableFontAndUnsupportedGlyphsFailBeforeJobCreation() throws {
-        XCTAssertThrowsError(try LabelFont(postScriptName: "Whiplash-Missing-Face"))
+        XCTAssertThrowsError(try LabelFont(postScriptName: "PlatenKit-Missing-Face"))
         XCTAssertThrowsError(try LabelFont(data: Data([0, 1, 2])))
         XCTAssertThrowsError(try LabelFont(postScriptName: "Courier-Bold", weight: 275))
         XCTAssertThrowsError(try LabelFont(postScriptName: "Karla", weight: 199))

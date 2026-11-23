@@ -13,7 +13,7 @@ At 18:00 CST on November 22, 2026, the Mac sent `WL-R4-2359` to the Rongta RP421
 
 ## Comparison with the vendor software
 
-In the local Rongta iOS SDK, `PrinterManager.m` passes label width and height into the ZPL header builder. The SDK library contains `^PW`, `^LL` and `^GB` format strings. The sample’s `ZplPrint` text handler in `TextViewController.m` has an empty body. The two Mac diagnostic jobs used `^GB` and text with the printer’s current page settings. Whiplash’s raster encoder explicitly supplies `^PW812^LL406^LH0,0` for this stock. [Swift encoders](../../Sources/WhiplashPrinting/Labels.swift)
+In the local Rongta iOS SDK, `PrinterManager.m` passes label width and height into the ZPL header builder. The SDK library contains `^PW`, `^LL` and `^GB` format strings. The sample’s `ZplPrint` text handler in `TextViewController.m` has an empty body. The two Mac diagnostic jobs used `^GB` and text with the printer’s current page settings. The Swift raster encoder explicitly supplies `^PW812^LL406^LH0,0` for this stock. [Swift encoders](../../Sources/PlatenKit/Labels.swift)
 
 An offline check passed a 4 × 2 inch page through the shared renderer and Rongta image encoder. The resulting ZPL contained a single `^GFA` graphic with 41,412 raster bytes at a 102-byte stride. Extracting those bytes and unpacking the dots produced an 812 × 406 image whose QR decoded to `WL-R-PREVIEW`. Physical raster output remains unverified.
 

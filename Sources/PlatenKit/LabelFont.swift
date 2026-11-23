@@ -18,7 +18,7 @@ public struct LabelFont: @unchecked Sendable {
     public init(postScriptName name: String, weight: Int? = nil, pointSize: Double?) throws {
         if name == "Karla" || name == "Karla-Regular" {
             guard let url = Self.bundledKarlaURL else {
-                throw BenchError("The Karla resource is missing from the WhiplashPrinting bundle.")
+                throw BenchError("The Karla resource is missing from the PlatenKit bundle.")
             }
             try self.init(data: Data(contentsOf: url), weight: weight, pointSize: pointSize)
             return

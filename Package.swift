@@ -10,12 +10,10 @@ let package = Package(
     platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         .library(name: "PlatenKit", targets: ["PlatenKit"]),
-        .library(name: "WhiplashPrinting", targets: ["WhiplashPrinting"]),
         .executable(name: "printer-bench", targets: ["PrinterBench"])
     ],
     targets: [
         .target(name: "PlatenKit", resources: [.copy("Resources/Karla-Variable.ttf"), .copy("Resources/OFL.txt")]),
-        .target(name: "WhiplashPrinting", dependencies: ["PlatenKit"]),
         .executableTarget(
             name: "PrinterBench", dependencies: ["PlatenKit"], exclude: ["Info.plist"],
             linkerSettings: [.unsafeFlags([
@@ -23,7 +21,7 @@ let package = Package(
             ], .when(platforms: [.macOS]))]
         ),
         .testTarget(
-            name: "WhiplashPrintingTests", dependencies: ["PlatenKit", "WhiplashPrinting"],
+            name: "PlatenKitTests", dependencies: ["PlatenKit"],
             resources: [.copy("Fixtures/moon-gray-284.png")]
         )
     ]
