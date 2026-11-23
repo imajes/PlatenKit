@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: macOS tests and iOS build
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test the Swift package
+        run: swift test
+
+      - name: Build the release CLI
+        run: swift build -c release
+
+      - name: Render the documented Moon label offline
+        run: |
+          swift run -c release --skip-build printer-bench preview \
+            --width-mm 101.6 --height-mm 50.8 --run-id Box-014-Kitchen \
+            --font Karla --font-weight 275 --font-size-pt 24 \
+            --artwork Tests/PlatenKitTests/Fixtures/moon-gray-284.png --image-mode photo \
+            --monochrome --output "$RUNNER_TEMP/moon-preview.png"
+          test -s "$RUNNER_TEMP/moon-preview.png"
+
+      - name: Build the unsigned iPhone bench
+        run: |
+          xcodebuild -project BenchApp/PrinterBench.xcodeproj -scheme PrinterBench \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/ios-build" \
+            CODE_SIGNING_ALLOWED=NO build
