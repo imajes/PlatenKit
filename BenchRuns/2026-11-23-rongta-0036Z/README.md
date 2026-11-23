@@ -9,7 +9,7 @@ James confirmed that the Rongta printed when Whiplash sent `WL-G9-0035` as an im
 | Connection | The Mac connected and inspected the services. It selected `18F0/2AF1` with write response, the same endpoint used in the earlier native text comparison. |
 | Job | The Swift renderer drew the ID on an 812 × 406 dot page. The ZPL encoder set the width, length and origin, sent one `^GFA` field with 41,412 bytes of raster data at 102 bytes per row, and requested one copy with `^PQ1`. |
 | Write | All 82,882 bytes were acknowledged in 162 writes with a 512-byte limit. The submission took 43 seconds, ending at 6:37:33 p.m. CST on November 22, 2026 (00:37:33 UTC on November 23). The Mac then requested disconnect. |
-| Paper | James confirmed physical output. A Whiplash iPhone print with artwork and a scannable QR remains the next hardware milestone. |
+| Paper | James confirmed physical output. A later photograph shows the readable `WL-G9-0035` beneath the smaller Moon label. [Photographed print](../2026-11-23-moon-0132Z/paper.jpg) |
 
 The watched native ZPL text job on this stock advanced one blank label. The TSPL text job produced no movement. The successful ZPL job changed both how the text was drawn and how the page dimensions and origin were specified. [Text comparison](../2026-11-23-rongta-0025Z/README.md) · [Self-test on both rolls](../2026-11-22-rongta-2349Z/README.md#built-in-self-test-on-both-rolls)
 

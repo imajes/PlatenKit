@@ -1,0 +1,17 @@
+Host Version 27.3 (Build 26C5047e) · Core Bluetooth
+Requested image · WL-LIMG-013140 · Labelife AM-243-BT (PM-241-BT) · TSPL · 101.6 × 152.4 mm, 812 × 1218 dots at 203 dpi · paper unobserved
+2026-11-23T01:32:03.159Z Scanning for 10.0 seconds
+Discovered AM-243Z-BT-5AD6 · 77DD7653-71CA-64B9-69A2-383830070253 · RSSI -60 · advertised 1812,AF30
+2026-11-23T01:32:13.166Z Connecting to AM-243Z-BT-5AD6 77DD7653-71CA-64B9-69A2-383830070253
+2026-11-23T01:32:13.820Z Connected to 77DD7653-71CA-64B9-69A2-383830070253
+2026-11-23T01:32:14.167Z Endpoint FF00/FF02 [write, writeWithoutResponse]
+2026-11-23T01:32:14.167Z Endpoint FF00/FF03 [notify]
+2026-11-23T01:32:14.169Z Host requesting notifications on FF00/FF03
+2026-11-23T01:32:14.285Z Listening on FF00/FF03
+2026-11-23T01:32:14.285Z Submit WL-LIMG-013140 · Labelife AM-243-BT (PM-241-BT) · TSPL · 101.6 × 152.4 mm, 812 × 1218 dots at 203 dpi
+2026-11-23T01:32:14.285Z Writing 21983 bytes · FF00/FF02 · acknowledged, limit 512
+2026-11-23T01:32:14.288Z FF03 initial write credits · 7
+2026-11-23T01:32:14.288Z FF03 packet limit · 244 bytes
+2026-11-23T01:32:17.457Z Printer · SSSGETPRINTING:DOING
+2026-11-23T01:32:17.457Z WL-LIMG-013140 · 21983 bytes in 92 chunks acknowledged · paper awaits observation
+2026-11-23T01:32:19.583Z Host requested disconnect from 77DD7653-71CA-64B9-69A2-383830070253
