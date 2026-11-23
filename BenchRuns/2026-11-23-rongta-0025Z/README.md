@@ -28,4 +28,4 @@ The Mac used the same stock, endpoint, font commands and media settings. The cap
 | ZPL · `WL-Z7-0033` | −54 dBm. All 42 bytes acknowledged in one write at 18:33:40 CST. [Trace](03-WL-Z7-0033.log) | Exactly one label advanced, completely blank. |
 | TSPL · `WL-T8-0034` | −60 dBm. All 49 bytes acknowledged in one write at 18:34:23 CST. [Trace](04-WL-T8-0034.log) | No paper moved. |
 
-These results support continuing with ZPL on this unit in its present configuration. The next experiment uses the same Bluetooth endpoint and represents the text as a graphic field.
+The next experiment used ZPL on this same endpoint, represented the text as a graphic field and produced the first confirmed Mac print. [Bitmap test and paper result](../2026-11-23-rongta-0036Z/README.md)

@@ -1,6 +1,6 @@
 # WhiplashPrinting
 
-A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Labelife AM-243-BT has produced a QR label and an ID-only label from the Mac. Physical trials from the Whiplash iPhone app are the next milestone.
+A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. From the Mac, the Rongta RP421A printed a ZPL bitmap with a run ID on 4 × 2 inch stock. The Labelife AM-243-BT printed a QR label and an ID-only label on 4 × 6 inch stock. Physical trials from the Whiplash iPhone app are the next milestone.
 
 To use the library directly in a native Swift app, follow the [iPhone integration quickstart](QUICKSTART.md). It covers an offline preview, adding the local package in Xcode, owning a printer session in SwiftUI, and verifying the result on paper.
 
@@ -47,6 +47,8 @@ The Mac runs below took place on November 20, 2026, on macOS 27.3 (26C5047e) usi
 On November 22, the Rongta printed its built-in self-test with the correct power supply. The photographed page reports `RP421`, firmware `V4.31` (2024-01-30), ZPL and 203 dpi. James recalls that page was on the larger roll. He repeated the self-test on the confirmed 4 × 2 inch roll, where it printed on one label and stopped at its end. On the same stock and supply, the Mac’s `WL-R3-2350` on `18F0/2AF1` and `WL-R4-2359` on `FF00/FF02` each received an 88-byte write acknowledgement and fed completely blank paper. [Self-test and first endpoint](BenchRuns/2026-11-22-rongta-2349Z/README.md#built-in-self-test-on-both-rolls) · [Second endpoint and trace](BenchRuns/2026-11-22-rongta-2359Z/README.md)
 
 James then confirmed a physical iPhone print from **RT Elabel**, the app Rongta lists for the RP421A. He selected ZPL in the app. Its published version history also documents a TSPL default for the RP421 profile. On the 4 × 2 inch roll the Mac subsequently sent one native text ID per language through `18F0/2AF1`. [RT Elabel evidence and both text traces](BenchRuns/2026-11-23-rongta-0025Z/README.md) · [Publisher’s version history](https://apps.apple.com/us/app/rt-elabel/id6714471637)
+
+On the watched repeats, native ZPL text advanced one blank label and native TSPL text produced no movement. The next job used the same endpoint and stock, rendered `WL-G9-0035` as a ZPL bitmap and explicitly set the 812 × 406 dot page dimensions and origin. All 82,882 bytes were acknowledged in 162 writes. James confirmed the first physical Rongta print from the Swift bench. [Source PNG, trace and reproduction command](BenchRuns/2026-11-23-rongta-0036Z/README.md)
 
 ### Labelife wire format
 
