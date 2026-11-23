@@ -2,7 +2,7 @@ import CoreGraphics
 import CryptoKit
 import ImageIO
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class PhotoRasterTests: XCTestCase {
     private func image(_ pixels: [UInt8], width: Int, height: Int) throws -> CGImage {

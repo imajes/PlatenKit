@@ -1,6 +1,6 @@
 import CoreImage.CIFilterBuiltins
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class PrinterTests: XCTestCase {
     func testLabelifeFragmentedPrinterMessagesAndErrors() {

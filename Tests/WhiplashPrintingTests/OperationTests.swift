@@ -1,5 +1,5 @@
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class OperationTests: XCTestCase {
     @MainActor func testExpiredWaitAndDuplicateCallbacksAllowAFreshOperation() async throws {

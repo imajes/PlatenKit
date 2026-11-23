@@ -4,7 +4,7 @@ options:
   deploymentTarget:
     iOS: "16.0"
 packages:
-  WhiplashPrinting:
+  PlatenKit:
     path: ..
 targets:
   PrinterBench:
@@ -12,8 +12,8 @@ targets:
     platform: iOS
     sources: [App]
     dependencies:
-      - package: WhiplashPrinting
-        product: WhiplashPrinting
+      - package: PlatenKit
+        product: PlatenKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.smokeclouds.whiplash.printerbench

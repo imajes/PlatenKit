@@ -1,7 +1,7 @@
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
-import WhiplashPrinting
+import PlatenKit
 
 private let usage = """
 printer-bench scan [--match NAME] [--seconds 5]

@@ -1,6 +1,6 @@
 import ImageIO
 import SwiftUI
-import WhiplashPrinting
+import PlatenKit
 
 @MainActor final class BenchState: ObservableObject {
     @Published var devices: [NearbyPrinter] = []

@@ -1,5 +1,5 @@
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class LabelifeRasterTests: XCTestCase {
     /// Independently expand the LZO1X instructions used by the encoder. Enforce each block's output limit.

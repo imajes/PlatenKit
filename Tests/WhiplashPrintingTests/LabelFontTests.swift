@@ -2,7 +2,7 @@ import CoreText
 import ImageIO
 import UniformTypeIdentifiers
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class LabelFontTests: XCTestCase {
     private func stock() throws -> LabelStock { try LabelStock(widthMM: 101.6, heightMM: 50.8, dpi: 203) }

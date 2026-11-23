@@ -1,5 +1,5 @@
 import XCTest
-@testable import WhiplashPrinting
+@testable import PlatenKit
 
 final class RongtaDiagnosticsTests: XCTestCase {
     func testVendorReplyPathMustMatchServiceWriteAndNotificationProperties() throws {

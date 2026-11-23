@@ -1,4 +1,6 @@
-# WhiplashPrinting
+# PlatenKit
+
+Add the `PlatenKit` library product and use `import PlatenKit`. This checkout keeps the package in the `WhiplashPrinting` directory. The original `WhiplashPrinting` product still exposes its existing public types for apps that already import it.
 
 A standalone Swift package for native Bluetooth label printing on macOS and iOS. The Mac command-line tool and the iPhone bench app use the same transport, renderer and printer adapters. The Mac printed the same photographic design on the Rongta RP421A (4 × 2 inches, ZPL) and the Labelife AM-243-BT (4 × 6 inches, TSPL). Both also printed readable bitmap text, and the Labelife produced a scannable QR. Physical trials from the Whiplash iPhone app are the next milestone. [Paper photograph and Bluetooth traces](BenchRuns/2026-11-23-moon-0132Z/README.md)
 
@@ -34,7 +36,7 @@ swift run printer-bench image --model labelife --device "$printer_id" --width-mm
 
 Whiplash draws the text on the Mac or iPhone at the stock’s print resolution. The Rongta receives the resulting dots as a ZPL graphic, and the Labelife receives them as a TSPL bitmap. The same font choice applies to an ID-only label and to the title on an artwork-and-QR label. A pre-rendered image carries its own lettering.
 
-Use `--font Karla --font-weight 275` for the bundled upright Karla. Its OpenType weight axis covers 200 through 800, including Light at 300. For another face, use its exact PostScript name, such as `--font Courier-Bold`, or pass a standalone font with `--font-file /path/to/face.ttf`. The file can also be OpenType (`.otf`). Set a numeric weight for a font with a variable weight axis. Fixed-weight faces use the weight in their file or name. An unavailable face, unsupported weight, or character the selected font cannot draw produces an error before submission. With no font selected, the renderer keeps the original Helvetica Bold layout. [Karla font metadata](https://raw.githubusercontent.com/google/fonts/main/ofl/karla/METADATA.pb) · [Bundled font license](Sources/WhiplashPrinting/Resources/OFL.txt)
+Use `--font Karla --font-weight 275` for the bundled upright Karla. Its OpenType weight axis covers 200 through 800, including Light at 300. For another face, use its exact PostScript name, such as `--font Courier-Bold`, or pass a standalone font with `--font-file /path/to/face.ttf`. The file can also be OpenType (`.otf`). Set a numeric weight for a font with a variable weight axis. Fixed-weight faces use the weight in their file or name. An unavailable face, unsupported weight, or character the selected font cannot draw produces an error before submission. With no font selected, the renderer keeps the original Helvetica Bold layout. [Karla font metadata](https://raw.githubusercontent.com/google/fonts/main/ofl/karla/METADATA.pb) · [Bundled font license](Sources/PlatenKit/Resources/OFL.txt)
 
 For an offline preview of the 4 × 2 inch roll, use a new PNG filename. `--monochrome` exports the same black and white dots the print adapters use, including their threshold for converting gray edges to black or white.
 
@@ -141,11 +143,11 @@ If a label feeds entirely blank, the RP421A can print a self-test independently 
 
 ## Use the Swift library
 
-Add the local package and depend on its `WhiplashPrinting` product. Keep one `BluetoothPrinter` on the main actor. Call `scan()` when the operator asks, display its results and retain the selected `NearbyPrinter` on that same instance. Invoke the following from an explicit print action. Upstream SVG artwork can be rendered to a `CGImage` before calling the component.
+Add the local package and depend on its `PlatenKit` product. Keep one `BluetoothPrinter` on the main actor. Call `scan()` when the operator asks, display its results and retain the selected `NearbyPrinter` on that same instance. Invoke the following from an explicit print action. Upstream SVG artwork can be rendered to a `CGImage` before calling the component.
 
 ```swift
 import CoreGraphics
-import WhiplashPrinting
+import PlatenKit
 
 @MainActor
 func printBox(_ runID: String, artwork: CGImage?, selected: NearbyPrinter,

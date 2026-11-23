@@ -1,6 +1,6 @@
 # Print from a native Swift iPhone app
 
-The planned Whiplash iPhone app can import `WhiplashPrinting` directly through Swift Package Manager. The package takes a rendered page, physical label dimensions and a run ID, and sends one job to the selected Bluetooth printer. The included SwiftUI bench is a working example. On the Mac, the Rongta printed an ID rendered as a ZPL bitmap on 4 × 2 inch stock, and the Labelife printed artwork and a scannable QR on 4 × 6 inch stock. Both printers still need the Whiplash iPhone trials in section 4. [Rongta image and trace](BenchRuns/2026-11-23-rongta-0036Z/README.md) · [Labelife paper results](README.md#physical-evidence)
+The planned Whiplash iPhone app can import `PlatenKit` directly through Swift Package Manager. The package takes a rendered page, physical label dimensions and a run ID, and sends one job to the selected Bluetooth printer. The included SwiftUI bench is a working example. On the Mac, the Rongta printed an ID rendered as a ZPL bitmap on 4 × 2 inch stock, and the Labelife printed artwork and a scannable QR on 4 × 6 inch stock. Both printers still need the Whiplash iPhone trials in section 4. [Rongta image and trace](BenchRuns/2026-11-23-rongta-0036Z/README.md) · [Labelife paper results](README.md#physical-evidence)
 
 ## 1. Build and preview a label on the Mac
 
@@ -19,7 +19,7 @@ At 203 dpi the preview is 812 × 1,218 pixels. It contains `WL-PREVIEW` as text 
 ## 2. Add the library to the iOS target
 
 1. To try the existing integration, open `BenchApp/PrinterBench.xcodeproj`. When starting the Whiplash app after hardware acceptance, use an iOS **App** target with **Swift** as the language and a minimum deployment target of iOS 16 or later. This guide uses **SwiftUI** for the interface. [Apple’s app project guide](https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app)
-2. In the new app’s Xcode package dependency dialog, choose **Add Local** and select the root checkout’s **WhiplashPrinting** folder containing `Package.swift`. Add the **WhiplashPrinting** library product to the application target. Use a path relative to the app project so other checkouts and build machines can resolve it. The bench already links the product this way. [Bench project configuration](BenchApp/project.yml) · [Apple’s package dependency guide](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app)
+2. In the new app’s Xcode package dependency dialog, choose **Add Local** and select the root checkout’s **WhiplashPrinting** folder containing `Package.swift`. Add the **PlatenKit** library product to the application target. Use a path relative to the app project so other checkouts and build machines can resolve it. The bench already links the product this way. [Bench project configuration](BenchApp/project.yml) · [Apple’s package dependency guide](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app)
 3. In the app target’s **Info** settings, add `NSBluetoothAlwaysUsageDescription` with a reason such as “Find your selected label printer and send a label when you request one.” For a generated `Info.plist`, the equivalent build setting is `INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription`. The first user-initiated scan can prompt for Bluetooth access. [Apple’s Bluetooth permission key](https://developer.apple.com/documentation/bundleresources/information-property-list/nsbluetoothalwaysusagedescription)
 
 ## 3. Wire Scan, Connect, Print and Disconnect
@@ -35,7 +35,7 @@ Keep one session on the main actor across the printer picker and the saved-box s
 import CoreGraphics
 import Foundation
 import SwiftUI
-import WhiplashPrinting
+import PlatenKit
 
 @MainActor
 final class BoxLabelPrinter: ObservableObject {

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		05826A6008DDD61D8749AA84 /* WhiplashPrinting in Frameworks */ = {isa = PBXBuildFile; productRef = 0B5D95B2E4E9F9D98C6CB0C7 /* WhiplashPrinting */; };
+		05826A6008DDD61D8749AA84 /* PlatenKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0B5D95B2E4E9F9D98C6CB0C7 /* PlatenKit */; };
 		7F02E8043CD0829B395F57CB /* BenchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECDF9E0BFD8B82E9F6F30241 /* BenchState.swift */; };
 		EA7CD5C674DDCBBBD9A777CA /* PrinterBenchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 494138414A04C7BEF65C2DCD /* PrinterBenchApp.swift */; };
 /* End PBXBuildFile section */
@@ -15,7 +15,7 @@
 /* Begin PBXFileReference section */
 		494138414A04C7BEF65C2DCD /* PrinterBenchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrinterBenchApp.swift; sourceTree = "<group>"; };
 		5EA2BA3AF34E82F8F6D9AB87 /* PrinterBench.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PrinterBench.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C0645717185FB8A5A87821BF /* WhiplashPrinting */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WhiplashPrinting; path = ..; sourceTree = SOURCE_ROOT; };
+		C0645717185FB8A5A87821BF /* PlatenKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PlatenKit; path = ..; sourceTree = SOURCE_ROOT; };
 		ECDF9E0BFD8B82E9F6F30241 /* BenchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -24,7 +24,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				05826A6008DDD61D8749AA84 /* WhiplashPrinting in Frameworks */,
+				05826A6008DDD61D8749AA84 /* PlatenKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -34,7 +34,7 @@
 		2E213BEE398BF1D0C0ACAE7E /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				C0645717185FB8A5A87821BF /* WhiplashPrinting */,
+				C0645717185FB8A5A87821BF /* PlatenKit */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -81,7 +81,7 @@
 			);
 			name = PrinterBench;
 			packageProductDependencies = (
-				0B5D95B2E4E9F9D98C6CB0C7 /* WhiplashPrinting */,
+				0B5D95B2E4E9F9D98C6CB0C7 /* PlatenKit */,
 			);
 			productName = PrinterBench;
 			productReference = 5EA2BA3AF34E82F8F6D9AB87 /* PrinterBench.app */;
@@ -337,9 +337,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		0B5D95B2E4E9F9D98C6CB0C7 /* WhiplashPrinting */ = {
+		0B5D95B2E4E9F9D98C6CB0C7 /* PlatenKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = WhiplashPrinting;
+			productName = PlatenKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,6 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
-import WhiplashPrinting
+import PlatenKit
 
 @main struct PrinterBenchApp: App {
     var body: some Scene { WindowGroup { BenchView() } }
